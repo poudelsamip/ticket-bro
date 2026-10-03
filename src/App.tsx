@@ -13,6 +13,9 @@ import PaymentSuccessPage from "@/pages/PaymentSuccessPage";
 import PaymentFailedPage from "@/pages/PaymentFailedPage";
 import MyTicketsPage from "@/pages/MyTicketsPage";
 import EventTicketDetailPage from "@/pages/EventTicketDetailPage";
+import OrganizerEventsPage from "@/pages/OrganizerEventsPage";
+import OrganizerEventDetailPage from "@/pages/OrganizerEventDetailPage";
+import EditEventPage from "@/pages/EditEventPage";
 
 export default function App() {
   const initializeAuth = useAuthStore((s) => s.initializeAuth);
@@ -38,6 +41,9 @@ export default function App() {
             <Route path="/payment-failed" element={<PaymentFailedPage />} />
             <Route path="/my-tickets" element={<MyTicketsPage />} />
             <Route path="/my-tickets/:eventId" element={<EventTicketDetailPage />} />
+            <Route path="/organizer/events" element={<OrganizerEventsPage />} />
+            <Route path="/organizer/events/:slug" element={<OrganizerEventDetailPage />} />
+            <Route path="/organizer/events/:slug/edit" element={<EditEventPage />} />
           </Routes>
         </main>
       </div>

@@ -100,3 +100,42 @@ export interface MyTicket {
   ticketType: string;
 }
 
+export interface OrgEventListItem {
+  id: string;
+  slug: string;
+  title: string;
+  status: "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
+  date: string;
+  category: { name: string };
+  venue: { name: string; address: string; district: string } | null;
+}
+
+export interface OrgTicketType {
+  id: string;
+  name: string;
+  price: number;
+  total: number;
+  sold: number;
+}
+
+export interface OrgEventDetail {
+  id: string;
+  slug: string;
+  title: string;
+  status: "DRAFT" | "PUBLISHED" | "CANCELLED" | "COMPLETED";
+  date: string;
+  startTime: string | null;
+  endTime: string | null;
+  bannerUrl: string | null;
+  description: string;
+  seatingType: "GENERAL" | "BLOCK";
+  category: { name: string };
+  venue: {
+    name: string;
+    address: string;
+    district: string;
+    googleMaps: string | null;
+  } | null;
+  ticketTypes: OrgTicketType[];
+}
+

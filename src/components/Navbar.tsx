@@ -23,9 +23,14 @@ export default function Navbar() {
           {user ? (
             <>
               {user.role === "ORGANIZER" && (
-                <Link to="/events/new" className="hover:underline">
-                  add event
-                </Link>
+                <>
+                  <Link to="/organizer/events" className="hover:underline">
+                    my events
+                  </Link>
+                  <Link to="/events/new" className="hover:underline">
+                    add event
+                  </Link>
+                </>
               )}
               {user.role === "USER" && (
                 <Link to="/my-tickets" className="hover:underline">
