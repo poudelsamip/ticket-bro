@@ -18,14 +18,15 @@ const emptyTicket = (): TicketTypeInput => ({
 
 export default function AddEventPage() {
   const user = useAuthStore((s) => s.user);
+  const isInitialized = useAuthStore((s) => s.isInitialized);
   const navigate = useNavigate();
 
   // Redirect non-organizers
   useEffect(() => {
-    if (user && user.role !== "ORGANIZER") {
+    if (isInitialized && (!user || user.role !== "ORGANIZER")) {
       void navigate("/");
     }
-  }, [user, navigate]);
+  }, [user, isInitialized, navigate]);
 
   const [categories, setCategories] = useState<EventCategory[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);

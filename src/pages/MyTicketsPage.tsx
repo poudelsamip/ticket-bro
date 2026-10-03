@@ -5,7 +5,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import Spinner from "@/components/Spinner";
 
 export default function MyTicketsPage() {
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const {
     purchasedEvents,
     isLoadingMyEvents,
@@ -14,8 +14,12 @@ export default function MyTicketsPage() {
   } = useTicketStore();
 
   useEffect(() => {
-    void fetchMyEvents();
-  }, [fetchMyEvents]);
+    if (isInitialized && user) {
+      void fetchMyEvents();
+    }
+  }, [isInitialized, user, fetchMyEvents]);
+
+  if (!isInitialized) return <Spinner />;
 
   if (!user) {
     return (

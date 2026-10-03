@@ -17,6 +17,38 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+let refreshPromise: Promise<string> | null = null;
+
+export const refreshAuth = async (): Promise<string> => {
+  if (refreshPromise) {
+    return refreshPromise;
+  }
+
+  refreshPromise = (async () => {
+    try {
+      const { data } = await axios.post<{
+        data: { accessToken: string; user?: any };
+      }>(`${API_BASE_URL}/auth/refresh`, null, {
+        withCredentials: true,
+      });
+
+      const newToken = data.data.accessToken;
+      const user = data.data.user;
+
+      useAuthStore.getState().setAccessToken(newToken);
+      if (user) {
+        useAuthStore.getState().setUser(user);
+      }
+
+      return newToken;
+    } finally {
+      refreshPromise = null;
+    }
+  })();
+
+  return refreshPromise;
+};
+
 api.interceptors.response.use(
   (res) => res,
   async (error) => {
@@ -26,16 +58,12 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, null, {
-          withCredentials: true,
-        });
-        const newToken = data.data.accessToken;
-        useAuthStore.getState().setAccessToken(newToken);
+        const newToken = await refreshAuth();
         originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
-      } catch {
+      } catch (refreshErr) {
         useAuthStore.getState().logout();
-        return Promise.reject(error);
+        return Promise.reject(refreshErr);
       }
     }
 

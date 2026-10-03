@@ -1,5 +1,7 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
 import Navbar from "@/components/Navbar";
+import { useAuthStore } from "@/stores/auth.store";
 import HomePage from "@/pages/HomePage";
 import EventsPage from "@/pages/EventsPage";
 import EventDetailPage from "@/pages/EventDetailPage";
@@ -13,6 +15,12 @@ import MyTicketsPage from "@/pages/MyTicketsPage";
 import EventTicketDetailPage from "@/pages/EventTicketDetailPage";
 
 export default function App() {
+  const initializeAuth = useAuthStore((s) => s.initializeAuth);
+
+  useEffect(() => {
+    void initializeAuth();
+  }, [initializeAuth]);
+
   return (
     <BrowserRouter>
       <div className="min-h-screen bg-surface">
