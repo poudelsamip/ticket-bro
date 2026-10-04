@@ -116,6 +116,7 @@ export interface OrgTicketType {
   price: number;
   total: number;
   sold: number;
+  scanned: number;
 }
 
 export interface OrgEventDetail {

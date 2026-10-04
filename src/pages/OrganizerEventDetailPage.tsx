@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { useOrganizerStore } from "@/stores/organizer.store";
 import { useAuthStore } from "@/stores/auth.store";
 import Spinner from "@/components/Spinner";
+import api from "@/lib/api";
+import type { ApiResponse } from "@/types";
 
 const STATUS_STYLES: Record<string, string> = {
   DRAFT: "bg-neutral-100 text-neutral-600",
@@ -11,17 +13,43 @@ const STATUS_STYLES: Record<string, string> = {
   COMPLETED: "bg-blue-50 text-blue-700",
 };
 
+interface ScanStat {
+  id: string;
+  scanned: number;
+}
+
 export default function OrganizerEventDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { user, isInitialized } = useAuthStore();
   const { currentEvent, isLoading, error, fetchOrgEventBySlug } =
     useOrganizerStore();
 
+  const [scanStats, setScanStats] = useState<Record<string, number>>({});
+
   useEffect(() => {
     if (isInitialized && user?.role === "ORGANIZER" && slug) {
       void fetchOrgEventBySlug(slug);
     }
   }, [isInitialized, user, slug, fetchOrgEventBySlug]);
+
+  // Fetch scan stats once we have the event id
+  useEffect(() => {
+    if (!currentEvent?.id) return;
+    api
+      .get<ApiResponse<{ ticketTypes: ScanStat[] }>>(
+        `/organizer/events/${currentEvent.id}/scan-stats`,
+      )
+      .then(({ data }) => {
+        const map: Record<string, number> = {};
+        data.data.ticketTypes.forEach((tt) => {
+          map[tt.id] = tt.scanned;
+        });
+        setScanStats(map);
+      })
+      .catch(() => {
+        /* non-critical */
+      });
+  }, [currentEvent?.id]);
 
   if (!isInitialized || isLoading) return <Spinner />;
 
@@ -60,9 +88,13 @@ export default function OrganizerEventDetailPage() {
   const ev = currentEvent;
   const totalTickets = ev.ticketTypes.reduce((s, t) => s + t.total, 0);
   const totalSold = ev.ticketTypes.reduce((s, t) => s + t.sold, 0);
+  const totalScanned = ev.ticketTypes.reduce(
+    (s, t) => s + (scanStats[t.id] ?? 0),
+    0,
+  );
   const totalRevenue = ev.ticketTypes.reduce(
     (s, t) => s + t.price * t.sold,
-    0
+    0,
   );
 
   const formattedStartTime = ev.startTime
@@ -118,7 +150,10 @@ export default function OrganizerEventDetailPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{ev.title}</h1>
           <p className="mt-1 text-[13px] text-text-muted">
-            {ev.category.name} · {ev.seatingType === "GENERAL" ? "General Admission" : "Block Seating"}
+            {ev.category.name} ·{" "}
+            {ev.seatingType === "GENERAL"
+              ? "General Admission"
+              : "Block Seating"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -182,8 +217,8 @@ export default function OrganizerEventDetailPage() {
         )}
       </div>
 
-      {/* Sales Summary */}
-      <div className="mb-6 grid grid-cols-3 gap-4">
+      {/* Sales + Check-in Summary */}
+      <div className="mb-6 grid grid-cols-4 gap-4">
         <div className="rounded-lg border border-border bg-surface-secondary p-4 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
             Capacity
@@ -195,6 +230,14 @@ export default function OrganizerEventDetailPage() {
             Sold
           </p>
           <p className="mt-1 text-xl font-bold">{totalSold}</p>
+        </div>
+        <div className="rounded-lg border border-border bg-green-50 p-4 text-center">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-green-600">
+            Scanned
+          </p>
+          <p className="mt-1 text-xl font-bold text-green-700">
+            {totalScanned}
+          </p>
         </div>
         <div className="rounded-lg border border-border bg-surface-secondary p-4 text-center">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
@@ -213,11 +256,24 @@ export default function OrganizerEventDetailPage() {
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-border bg-surface-secondary text-left">
-                <th className="px-4 py-3 font-semibold text-text-secondary">Name</th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">Price</th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">Total</th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">Sold</th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">Remaining</th>
+                <th className="px-4 py-3 font-semibold text-text-secondary">
+                  Name
+                </th>
+                <th className="px-4 py-3 font-semibold text-text-secondary">
+                  Price
+                </th>
+                <th className="px-4 py-3 font-semibold text-text-secondary">
+                  Total
+                </th>
+                <th className="px-4 py-3 font-semibold text-text-secondary">
+                  Sold
+                </th>
+                <th className="px-4 py-3 font-semibold text-green-700">
+                  Scanned
+                </th>
+                <th className="px-4 py-3 font-semibold text-text-secondary">
+                  Remaining
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -232,6 +288,9 @@ export default function OrganizerEventDetailPage() {
                   </td>
                   <td className="px-4 py-3 text-text-secondary">{tt.total}</td>
                   <td className="px-4 py-3 text-text-secondary">{tt.sold}</td>
+                  <td className="px-4 py-3 font-semibold text-green-700">
+                    {scanStats[tt.id] ?? 0}
+                  </td>
                   <td className="px-4 py-3 text-text-secondary">
                     {tt.total - tt.sold}
                   </td>
@@ -246,7 +305,7 @@ export default function OrganizerEventDetailPage() {
       {ev.description && (
         <div>
           <h2 className="mb-2 text-[15px] font-semibold">Description</h2>
-          <p className="text-[14px] leading-relaxed text-text-secondary whitespace-pre-line">
+          <p className="whitespace-pre-line text-[14px] leading-relaxed text-text-secondary">
             {ev.description}
           </p>
         </div>

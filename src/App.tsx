@@ -16,6 +16,9 @@ import EventTicketDetailPage from "@/pages/EventTicketDetailPage";
 import OrganizerEventsPage from "@/pages/OrganizerEventsPage";
 import OrganizerEventDetailPage from "@/pages/OrganizerEventDetailPage";
 import EditEventPage from "@/pages/EditEventPage";
+import OrganizerStaffPage from "@/pages/OrganizerStaffPage";
+import AcceptInvitePage from "@/pages/AcceptInvitePage";
+import StaffScanPage from "@/pages/StaffScanPage";
 
 export default function App() {
   const initializeAuth = useAuthStore((s) => s.initializeAuth);
@@ -44,6 +47,9 @@ export default function App() {
             <Route path="/organizer/events" element={<OrganizerEventsPage />} />
             <Route path="/organizer/events/:slug" element={<OrganizerEventDetailPage />} />
             <Route path="/organizer/events/:slug/edit" element={<EditEventPage />} />
+            <Route path="/organizer/staff" element={<OrganizerStaffPage />} />
+            <Route path="/staff/accept-invite" element={<AcceptInvitePage />} />
+            <Route path="/staff/scan" element={<StaffScanPage />} />
           </Routes>
         </main>
       </div>
