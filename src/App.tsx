@@ -19,6 +19,7 @@ import EditEventPage from "@/pages/EditEventPage";
 import OrganizerStaffPage from "@/pages/OrganizerStaffPage";
 import AcceptInvitePage from "@/pages/AcceptInvitePage";
 import StaffScanPage from "@/pages/StaffScanPage";
+import NotFoundPage from "@/pages/NotFoundPage";
 
 export default function App() {
   const initializeAuth = useAuthStore((s) => s.initializeAuth);
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/organizer/staff" element={<OrganizerStaffPage />} />
             <Route path="/staff/accept-invite" element={<AcceptInvitePage />} />
             <Route path="/staff/scan" element={<StaffScanPage />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </main>
       </div>
