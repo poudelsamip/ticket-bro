@@ -150,7 +150,7 @@ export default function OrganizerEventDetailPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{ev.title}</h1>
           <p className="mt-1 text-[13px] text-text-muted">
-            {ev.category.name} ·{" "}
+            {ev.category.name} {'·'}{" "}
             {ev.seatingType === "GENERAL"
               ? "General Admission"
               : "Block Seating"}

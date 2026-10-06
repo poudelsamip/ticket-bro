@@ -111,7 +111,7 @@ export default function OrganizerEventsPage() {
                       month: "short",
                       day: "numeric",
                     })}
-                    {" · "}
+                    {' · '}
                     {ev.category.name}
                   </p>
                   {ev.venue && (

@@ -112,7 +112,7 @@ export default function MyTicketsPage() {
                     key={t.name}
                     className="rounded-full bg-primary-50 px-2.5 py-0.5 text-[11px] font-semibold"
                   >
-                    {t.name} × {t.quantity}
+                    {t.name} {'×'} {t.quantity}
                   </span>
                 ))}
               </div>

@@ -234,11 +234,11 @@ function IndividualTab() {
                 {payments.map((p) => (
                   <tr key={p.id}>
                     <td>
-                      <p className="admin-table__title admin-monospace">{p.transactionId ?? "—"}</p>
-                      <p className="admin-table__sub">Order: {p.order.id.slice(0, 8)}…</p>
+                      <p className="admin-table__title admin-monospace">{p.transactionId ?? "-"}</p>
+                      <p className="admin-table__sub">Order: {p.order.id.slice(0, 8)}...</p>
                     </td>
                     <td>
-                      <p>{p.order.user.fullName ?? "—"}</p>
+                      <p>{p.order.user.fullName ?? "-"}</p>
                       <p className="admin-table__sub">{p.order.user.email}</p>
                     </td>
                     <td>{p.order.event.title}</td>
@@ -466,7 +466,7 @@ function ByOrganizerTab() {
                     <td>
                       {org.totalRefunded > 0
                         ? <span style={{ color: "var(--admin-info)", fontWeight: 600 }}>{fmtMoney(org.totalRefunded)}</span>
-                        : <span className="admin-table__sub">—</span>}
+                        : <span className="admin-table__sub">-</span>}
                     </td>
                     <td>
                       {org.pendingRefundCount > 0 ? (
@@ -481,7 +481,7 @@ function ByOrganizerTab() {
                     <td>
                       {org.totalOwed > 0
                         ? <span style={{ fontWeight: 700, fontSize: "15px", color: "var(--admin-accent)" }}>{fmtMoney(org.totalOwed)}</span>
-                        : <span className="admin-table__sub">—</span>}
+                        : <span className="admin-table__sub">-</span>}
                     </td>
                   </tr>
                 ))}
@@ -505,8 +505,8 @@ function ByOrganizerTab() {
 
 const TAB_LABELS: { id: Tab; label: string; desc: string }[] = [
   { id: "individual", label: "Individual Transactions", desc: "Full transaction history across the platform" },
-  { id: "by-event", label: "By Event", desc: "Payment breakdown per event — revenue, refunds & ticket sales" },
-  { id: "by-organizer", label: "By Organizer", desc: "Payment summary per organizer — collected, refunded & owed" },
+  { id: "by-event", label: "By Event", desc: "Payment breakdown per event - revenue, refunds & ticket sales" },
+  { id: "by-organizer", label: "By Organizer", desc: "Payment summary per organizer - collected, refunded & owed" },
 ];
 
 export default function AdminPaymentsPage() {

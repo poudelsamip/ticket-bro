@@ -148,7 +148,7 @@ export default function StaffScanPage() {
             {/* Info */}
             <div className="flex-1 min-w-0">
               <p className="text-base font-bold text-green-800">
-                ✓ Check-In Successful
+                Check-In Successful
               </p>
 
               <div className="mt-3 space-y-1.5">

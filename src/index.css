@@ -25,6 +25,19 @@
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
 }
 
+:root {
+  --admin-success: #16a34a;
+  --admin-success-hover: #15803d;
+  --admin-danger: #dc2626;
+  --admin-warning: #d97706;
+  --admin-info: #2563eb;
+  --admin-surface: #ffffff;
+  --admin-surface-2: #f9fafb;
+  --admin-border: #e5e7eb;
+  --admin-text: #0a0a0a;
+  --admin-text-muted: #737373;
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -446,11 +459,15 @@
 .admin-btn--primary:hover:not(:disabled) { opacity: 0.85; }
 
 .admin-btn--success {
-  background: var(--color-primary);
+  background: var(--admin-success, #16a34a);
   color: #fff;
-  border-color: var(--color-primary);
+  border-color: var(--admin-success, #16a34a);
 }
-.admin-btn--success:hover:not(:disabled) { opacity: 0.85; }
+.admin-btn--success:hover:not(:disabled) {
+  background: var(--admin-success-hover, #15803d);
+  border-color: var(--admin-success-hover, #15803d);
+  opacity: 1;
+}
 
 .admin-btn--ghost {
   background: var(--color-surface);
