@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { useAuthStore } from "@/stores/auth.store";
 
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,7 +16,14 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      void navigate("/");
+      // Read the user immediately after login
+      const user = useAuthStore.getState().user;
+      if (user?.role === "ADMIN") {
+        void navigate("/admin");
+      } else {
+        void navigate("/");
+      }
+
     } catch (err: unknown) {
       if (
         typeof err === "object" &&
