@@ -5,6 +5,7 @@ import { useOrganizerStore } from "@/stores/organizer.store";
 import api from "@/lib/api";
 import type { EventCategory, ApiResponse } from "@/types";
 import Spinner from "@/components/Spinner";
+import ImageUpload from "@/components/ImageUpload";
 
 const STATUS_OPTIONS = ["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"] as const;
 
@@ -38,6 +39,7 @@ export default function EditEventPage() {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -115,13 +117,32 @@ export default function EditEventPage() {
     setSuccess(false);
     setIsSubmitting(true);
 
+    // Upload banner image first if a new file was selected
+    let resolvedBannerUrl = bannerUrl;
+    if (bannerFile) {
+      try {
+        const formData = new FormData();
+        formData.append("image", bannerFile);
+        const uploadRes = await api.post<{ data: { url: string } }>(
+          "/upload/image",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        resolvedBannerUrl = uploadRes.data.data.url;
+      } catch {
+        setError("Image upload failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     const body: Record<string, unknown> = {};
 
     if (title.trim()) body.title = title.trim();
     if (description.trim()) body.description = description.trim();
     if (categoryId) body.categoryId = categoryId;
     if (status) body.status = status;
-    if (bannerUrl.trim()) body.bannerUrl = bannerUrl.trim();
+    if (resolvedBannerUrl.trim()) body.bannerUrl = resolvedBannerUrl.trim();
     if (date) body.date = date;
     if (startTime) {
       body.startTime = new Date(`${date}T${startTime}`).toISOString();
@@ -276,19 +297,15 @@ export default function EditEventPage() {
             </select>
           </div>
 
-          <div>
-            <label htmlFor="edit-banner" className={labelClass}>
-              Banner URL
-            </label>
-            <input
-              id="edit-banner"
-              type="url"
-              value={bannerUrl}
-              onChange={(e) => setBannerUrl(e.target.value)}
-              className={inputClass}
-              placeholder="https://example.com/banner.jpg"
-            />
-          </div>
+          <ImageUpload
+            id="edit-banner"
+            label="Banner Image"
+            value={bannerUrl}
+            onFileSelect={(file) => {
+              setBannerFile(file);
+              if (!file) setBannerUrl("");
+            }}
+          />
 
           <div>
             <label htmlFor="edit-status" className={labelClass}>

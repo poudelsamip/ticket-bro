@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useAuthStore } from "@/stores/auth.store";
 import api from "@/lib/api";
 import type { EventCategory, ApiResponse } from "@/types";
+import ImageUpload from "@/components/ImageUpload";
 
 interface TicketTypeInput {
   name: string;
@@ -37,6 +38,7 @@ export default function AddEventPage() {
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [bannerUrl, setBannerUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -88,6 +90,25 @@ export default function AddEventPage() {
     setError("");
     setIsSubmitting(true);
 
+    // Upload banner image first if a file was selected
+    let resolvedBannerUrl = bannerUrl;
+    if (bannerFile) {
+      try {
+        const formData = new FormData();
+        formData.append("image", bannerFile);
+        const uploadRes = await api.post<{ data: { url: string } }>(
+          "/upload/image",
+          formData,
+          { headers: { "Content-Type": "multipart/form-data" } }
+        );
+        resolvedBannerUrl = uploadRes.data.data.url;
+      } catch {
+        setError("Image upload failed. Please try again.");
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     // Build ISO datetimes from date + time
     const startISO = new Date(`${date}T${startTime}`).toISOString();
     const endISO = endTime
@@ -109,7 +130,7 @@ export default function AddEventPage() {
       })),
     };
 
-    if (bannerUrl.trim()) body.bannerUrl = bannerUrl.trim();
+    if (resolvedBannerUrl.trim()) body.bannerUrl = resolvedBannerUrl.trim();
 
     if (venueName.trim() || venueAddress.trim() || venueDistrict.trim()) {
       body.venue = {
@@ -230,19 +251,15 @@ export default function AddEventPage() {
             </select>
           </div>
 
-          <div>
-            <label htmlFor="event-banner" className={labelClass}>
-              Banner URL
-            </label>
-            <input
-              id="event-banner"
-              type="url"
-              value={bannerUrl}
-              onChange={(e) => setBannerUrl(e.target.value)}
-              className={inputClass}
-              placeholder="https://example.com/banner.jpg"
-            />
-          </div>
+          <ImageUpload
+            id="event-banner"
+            label="Banner Image"
+            value={bannerUrl}
+            onFileSelect={(file) => {
+              setBannerFile(file);
+              if (!file) setBannerUrl("");
+            }}
+          />
         </section>
 
         {/* Date & Time */}
