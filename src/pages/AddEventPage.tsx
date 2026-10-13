@@ -17,6 +17,14 @@ const emptyTicket = (): TicketTypeInput => ({
   total: "",
 });
 
+function getTodayDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function AddEventPage() {
   const user = useAuthStore((s) => s.user);
   const isInitialized = useAuthStore((s) => s.isInitialized);
@@ -88,6 +96,13 @@ export default function AddEventPage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
+
+    const minDate = getTodayDateString();
+    if (date < minDate) {
+      setError("Event date cannot be in the past.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Upload banner image first if a file was selected
@@ -274,6 +289,7 @@ export default function AddEventPage() {
               id="event-date"
               type="date"
               required
+              min={getTodayDateString()}
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className={inputClass}

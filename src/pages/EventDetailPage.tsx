@@ -153,7 +153,10 @@ export default function EventDetailPage() {
   );
   const isCancelled = event.status === "CANCELLED";
   const isCompleted = event.status === "COMPLETED";
-  const canPurchase = !isSoldOut && !isCancelled && !isCompleted;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isPast = new Date(event.date) < today;
+  const canPurchase = !isSoldOut && !isCancelled && !isCompleted && !isPast;
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 lg:px-8">
@@ -318,7 +321,7 @@ export default function EventDetailPage() {
               Tickets
             </h3>
 
-            {(isCancelled || isCompleted) && (
+            {(isCancelled || isCompleted || isPast) && (
               <p className="mb-4 rounded-md bg-primary-50 px-3 py-2 text-[12px] font-medium text-text-secondary">
                 {isCancelled ? "This event has been cancelled." : "This event has ended."}
               </p>
@@ -365,7 +368,7 @@ export default function EventDetailPage() {
                   ? "Sold Out"
                   : isCancelled
                   ? "Event Cancelled"
-                  : isCompleted
+                  : isCompleted || isPast
                   ? "Event Ended"
                   : "Buy Tickets"}
               </button>
@@ -374,7 +377,6 @@ export default function EventDetailPage() {
         </div>
       </div>
 
-      {/* ── PURCHASE MODAL (Wireframes 2 & 3) ── */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
