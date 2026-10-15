@@ -6,65 +6,86 @@ interface EventCardProps {
 }
 
 export default function EventCard({ event }: EventCardProps) {
-  const eventDate = new Date(event.date).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-  });
+  const dateObj = new Date(event.date);
+  const isValidDate = !isNaN(dateObj.getTime());
 
-  const eventYear = new Date(event.date).getFullYear();
+  const month = isValidDate
+    ? dateObj.toLocaleDateString("en-US", { month: "short" }).toUpperCase()
+    : "TBD";
+  const day = isValidDate
+    ? dateObj.toLocaleDateString("en-US", { day: "numeric" })
+    : "--";
+  const year = isValidDate ? dateObj.getFullYear() : "";
 
   return (
-    <Link
-      to={`/events/${event.slug}`}
-      className="group block overflow-hidden rounded-lg border border-border bg-white transition-all duration-300 hover:border-text-muted hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]"
-    >
-      {/* Banner */}
-      <div className="relative aspect-[2/1] w-full overflow-hidden bg-surface-secondary">
+    <Link to={`/events/${event.slug}`} className="event-card group">
+      {/* Banner / Poster Image */}
+      <div className="event-card__image">
         {event.bannerUrl ? (
           <img
             src={event.bannerUrl}
             alt={event.title}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            loading="lazy"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary-50">
+          <div className="event-card__image-placeholder">
             <svg
-              className="h-8 w-8 text-text-muted/40"
+              className="w-10 h-10 text-text-muted/30"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
-              strokeWidth={1}
+              strokeWidth={1.2}
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z"
+                d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
               />
             </svg>
           </div>
         )}
+
+        {/* Date Badge Overlay */}
+        <div className="event-card__date-badge">
+          <span className="event-card__date-badge-month">{month}</span>
+          <span className="event-card__date-badge-day">{day}</span>
+        </div>
       </div>
 
-      {/* Info */}
-      <div className="p-4">
-        {/* Category & Date row */}
-        <div className="mb-2 flex items-center justify-between">
-          <span className="rounded-full bg-primary-50 mx-[-6px] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
+      {/* Card Body */}
+      <div className="event-card__body">
+        {/* Category & Year */}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <span className="event-card__category">
             {event.category.name}
           </span>
-          <span className="text-[12px] font-medium tabular-nums">
-            {eventDate}, {eventYear}
-          </span>
+          {year && (
+            <span className="text-[11px] font-medium text-text-faint">
+              {year} • {event.startTime}
+            </span>
+          )}
         </div>
 
-        <h3 className="mb-2.5 text-[15px] font-semibold leading-snug text-text-primary line-clamp-2 group-hover:text-primary-light transition-colors">
+        {/* Event Title */}
+        <h3 className="event-card__title">
           {event.title}
         </h3>
 
+        {/* Organizer */}
+        {event.organizer && (
+          <p className="text-[12px] text-text-muted mb-3 flex items-center gap-1">
+            <span>By</span>
+            <span className="font-semibold text-text-secondary truncate">
+              {event.organizer.orgName}
+            </span>
+          </p>
+        )}
+
+        {/* Venue Location */}
         {event.venue && (
-          <div className="flex items-center gap-1.5 text-[12px]">
+          <div className="event-card__meta">
             <svg
-              className="h-3 w-3 shrink-0"
+              className="w-3.5 h-3.5 text-text-muted shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -82,7 +103,7 @@ export default function EventCard({ event }: EventCardProps) {
               />
             </svg>
             <span className="truncate">
-              {event.venue.name}, {event.venue.district}
+              {event.venue.name}{event.venue.district ? `, ${event.venue.district}` : ""}
             </span>
           </div>
         )}

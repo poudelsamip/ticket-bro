@@ -9,7 +9,14 @@ export default function EventDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { currentEvent, isLoading, error, fetchEventBySlug } = useEventStore();
-  const { holdOrder, initiatePayment, isHolding, isInitiatingPayment, error: ticketError, clearError } = useTicketStore();
+  const {
+    holdOrder,
+    initiatePayment,
+    isHolding,
+    isInitiatingPayment,
+    error: ticketError,
+    clearError,
+  } = useTicketStore();
   const { user } = useAuthStore();
 
   // quantities keyed by ticketTypeId
@@ -26,7 +33,9 @@ export default function EventDetailPage() {
   useEffect(() => {
     if (currentEvent) {
       const initial: Record<string, number> = {};
-      currentEvent.ticketTypes.forEach((t) => { initial[t.id] = 0; });
+      currentEvent.ticketTypes.forEach((t) => {
+        initial[t.id] = 0;
+      });
       setQuantities(initial);
     }
   }, [currentEvent?.id]);
@@ -69,9 +78,10 @@ export default function EventDetailPage() {
     clearError();
   };
 
-  const selectedItems = currentEvent?.ticketTypes
-    .filter((t) => (quantities[t.id] ?? 0) > 0)
-    .map((t) => ({ ticketType: t, quantity: quantities[t.id] })) ?? [];
+  const selectedItems =
+    currentEvent?.ticketTypes
+      .filter((t) => (quantities[t.id] ?? 0) > 0)
+      .map((t) => ({ ticketType: t, quantity: quantities[t.id] })) ?? [];
 
   const grandTotal = selectedItems.reduce(
     (sum, { ticketType, quantity }) => sum + ticketType.price * quantity,
@@ -81,7 +91,7 @@ export default function EventDetailPage() {
   const handleProceedToConfirm = () => {
     if (!user) {
       closeModal();
-      navigate("/login");
+      void navigate("/login");
       return;
     }
     if (selectedItems.length === 0) {
@@ -104,27 +114,34 @@ export default function EventDetailPage() {
     }
   };
 
-  if (isLoading) return <Spinner />;
+  if (isLoading) return <Spinner label="Loading event details..." />;
 
   if (error) {
     return (
-      <div className="flex flex-col items-center py-24">
-        <p className="mb-4 text-sm">{error}</p>
-        <Link
-          to="/events"
-          className="text-[13px] font-medium underline underline-offset-4 transition-colors"
-        >
-          ← Back to events
-        </Link>
+      <div className="page-container--form text-center flex-col">
+        <div className="empty-state max-w-md">
+          <p className="text-danger font-medium mb-3">{error}</p>
+          <Link to="/events" className="navbar__btn text-xs">
+            ← Return to Events
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (!currentEvent) {
     return (
-      <p className="py-24 text-center text-sm">
-        Event not found
-      </p>
+      <div className="page-container--form text-center flex-col">
+        <div className="empty-state max-w-md">
+          <h2 className="empty-state__title">Event Not Found</h2>
+          <p className="empty-state__body">
+            This event does not exist or may have been unlisted by the organizer.
+          </p>
+          <Link to="/events" className="navbar__btn text-xs">
+            Browse All Events
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -158,176 +175,185 @@ export default function EventDetailPage() {
   const isPast = new Date(event.date) < today;
   const canPurchase = !isSoldOut && !isCancelled && !isCompleted && !isPast;
 
-  return (
-    <div className="mx-auto max-w-5xl px-6 py-10 lg:px-8">
-      {/* Back link */}
-      <Link
-        to="/events"
-        className="mb-8 inline-flex items-center gap-1.5 text-[13px] font-medium transition-colors hover:text-text-primary"
-      >
-        <svg
-          className="h-3.5 w-3.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 19.5L8.25 12l7.5-7.5"
-          />
-        </svg>
-        Back to events
-      </Link>
+  const minPrice = Math.min(...event.ticketTypes.map((t) => t.price));
+  const maxPrice = Math.max(...event.ticketTypes.map((t) => t.price));
+  const priceDisplay =
+    minPrice === maxPrice
+      ? `Rs. ${minPrice}`
+      : `Rs. ${minPrice} – Rs. ${maxPrice}`;
 
-      {/* Two-column layout: main content + sidebar */}
-      <div className="grid gap-10 lg:grid-cols-[1fr_340px]">
-        {/* Main content */}
-        <div>
-          {/* Banner */}
-          {event.bannerUrl ? (
-            <div className="mb-8 overflow-hidden rounded-lg border border-border">
+  return (
+    <div className="page-container">
+      {/* Navigation breadcrumb & back button */}
+      <div className="mb-6 flex items-center justify-between">
+        <Link to="/events" className="back-link !mb-0">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+          Back to all events
+        </Link>
+        <span className="text-xs text-text-muted">
+          Event ID: <span className="font-mono">{event.id.slice(0, 8)}</span>
+        </span>
+      </div>
+
+      {/* Main Grid: Content + Ticket Sticky Sidebar */}
+      <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
+        {/* Left Column: Event Media & Details */}
+        <div className="space-y-8">
+          {/* Banner Media */}
+          <div className="relative overflow-hidden rounded-2xl border border-border shadow-sm bg-surface-secondary aspect-[16/9] sm:aspect-[2/1]">
+            {event.bannerUrl ? (
               <img
                 src={event.bannerUrl}
                 alt={event.title}
-                className="h-56 w-full object-cover sm:h-72"
+                className="w-full h-full object-cover"
               />
-            </div>
-          ) : (
-            <div className="mb-8 flex h-44 items-center justify-center rounded-lg border border-border bg-surface-secondary">
-              <svg
-                className="h-12 w-12/20"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
-                />
-              </svg>
-            </div>
-          )}
-
-          {/* Header */}
-          <div className="mb-8">
-            <span className="mb-3 inline-block rounded-full bg-primary-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
-              {event.category.name}
-            </span>
-            <h1 className="mb-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              {event.title}
-            </h1>
-            <p className="text-[13px] text-text-secondary">
-              Organized by{" "}
-              <span className="font-medium text-text-primary">
-                {event.organizer.orgName}
-              </span>
-            </p>
-          </div>
-
-          {/* Description */}
-          <div className="mb-8 border-t border-border pt-8">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider">
-              About this event
-            </h2>
-            <p className="whitespace-pre-line text-[14px] leading-relaxed text-text-secondary">
-              {event.description}
-            </p>
-          </div>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-5">
-          {/* Date & Time card */}
-          <div className="rounded-lg border border-border p-5">
-            <div className="mb-3 flex items-center gap-2">
-              <svg
-                className="h-4 w-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1.5}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
-                />
-              </svg>
-              <h3 className="text-[11px] font-semibold uppercase tracking-wider">
-                Date & Time
-              </h3>
-            </div>
-            <p className="text-[14px] font-medium">
-              {eventDate}
-            </p>
-            <p className="mt-0.5 text-[13px] text-text-secondary">
-              {startTime}
-              {endTime ? ` – ${endTime}` : ""}
-            </p>
-          </div>
-
-          {/* Venue card */}
-          {event.venue && (
-            <div className="rounded-lg border border-border p-5">
-              <div className="mb-3 flex items-center gap-2">
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-primary-100">
                 <svg
-                  className="h-4 w-4"
+                  className="h-16 w-16 text-text-muted/30"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
-                  strokeWidth={1.5}
+                  strokeWidth={1}
                 >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M15.5 10.5a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"
+                    d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"
                   />
                 </svg>
-                <h3 className="text-[11px] font-semibold uppercase tracking-wider">
-                  Venue
-                </h3>
               </div>
-              <p className="text-[14px] font-medium">
-                {event.venue.name}
-              </p>
-              <p className="mt-0.5 text-[13px] text-text-secondary">
-                {event.venue.address}, {event.venue.district}
-              </p>
-              {event.venue.googleMaps && (
-                <a
-                  href={event.venue.googleMaps}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-[12px] font-medium underline underline-offset-2 transition-colors"
-                >
-                  View on Maps →
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* ── TICKETS PANEL (Wireframe 1) ── */}
-          <div className="rounded-lg border border-border p-5">
-            <h3 className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-text-primary">
-              Tickets
-            </h3>
-
+            )}
+            {/* Status chip overlay if not regular */}
             {(isCancelled || isCompleted || isPast) && (
-              <p className="mb-4 rounded-md bg-primary-50 px-3 py-2 text-[12px] font-medium text-text-secondary">
-                {isCancelled ? "This event has been cancelled." : "This event has ended."}
-              </p>
+              <div className="absolute top-4 left-4">
+                <span className={`status-pill ${isCancelled ? "status-pill--CANCELLED" : "status-pill--DRAFT"}`}>
+                  {isCancelled ? "Cancelled" : isPast ? "Past Event" : "Completed"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Title & Metadata Header */}
+          <div className="border-b border-border pb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="event-card__category bg-accent-light text-accent px-2.5 py-0.5 rounded-full">
+                {event.category.name}
+              </span>
+              <span className="text-xs text-text-faint">•</span>
+              <span className="text-xs font-semibold text-text-muted uppercase tracking-wider">
+                {event.seatingType === "BLOCK" ? "Assigned Seating" : "General Admission"}
+              </span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-text-primary leading-tight mb-4">
+              {event.title}
+            </h1>
+
+            {/* Organizer row */}
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-primary text-white flex items-center justify-center font-bold text-xs uppercase">
+                {event.organizer.orgName.slice(0, 2)}
+              </div>
+              <div>
+                <p className="text-xs text-text-muted">Organized by</p>
+                <p className="text-sm font-bold text-text-primary">
+                  {event.organizer.orgName}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Key Details Cards (Date & Time, Venue) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Date card */}
+            <div className="card card--padded flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1">Date & Time</h4>
+                <p className="text-sm font-semibold text-text-primary">{eventDate}</p>
+                <p className="text-xs text-text-muted mt-0.5">
+                  {startTime} {endTime ? `– ${endTime}` : ""}
+                </p>
+              </div>
+            </div>
+
+            {/* Venue card */}
+            {event.venue && (
+              <div className="card card--padded flex items-start gap-3.5">
+                <div className="w-10 h-10 rounded-xl bg-accent-light text-accent flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-text-faint mb-1">Location</h4>
+                  <p className="text-sm font-semibold text-text-primary truncate">{event.venue.name}</p>
+                  <p className="text-xs text-text-muted mt-0.5 truncate">
+                    {event.venue.address}, {event.venue.district}
+                  </p>
+                  {event.venue.googleMaps && (
+                    <a
+                      href={event.venue.googleMaps}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-accent font-semibold hover:underline mt-1.5"
+                    >
+                      Open in Google Maps ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Event Description Card */}
+          <div className="card card--padded">
+            <h3 className="text-base font-bold text-text-primary mb-4 flex items-center gap-2">
+              <span>About this Event</span>
+            </h3>
+            <div className="text-sm text-text-secondary leading-relaxed whitespace-pre-line font-normal space-y-3">
+              {event.description}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Sticky Ticket Box */}
+        <div className="lg:sticky lg:top-20 h-fit space-y-4">
+          <div className="card card--padded border-2 border-border shadow-md bg-surface">
+            <div className="flex items-baseline justify-between mb-4 pb-4 border-b border-border">
+              <div>
+                <span className="text-xs text-text-muted font-medium">Tickets starting from</span>
+                <div className="text-2xl font-extrabold text-text-primary tracking-tight tabular-nums">
+                  {priceDisplay}
+                </div>
+              </div>
+              <span className={`status-pill ${canPurchase ? "status-pill--PUBLISHED" : "status-pill--CANCELLED"}`}>
+                {canPurchase ? "Available" : isSoldOut ? "Sold Out" : "Unavailable"}
+              </span>
+            </div>
+
+            {/* Status alerts if any */}
+            {(isCancelled || isCompleted || isPast) && (
+              <div className="mb-4 rounded-lg bg-warning-bg border border-warning-border p-3 text-xs font-medium text-warning">
+                {isCancelled
+                  ? "This event has been cancelled by the organizer."
+                  : "This event has concluded."}
+              </div>
             )}
 
-            <div className="space-y-3">
+            {/* Available Ticket Types list */}
+            <div className="space-y-2.5 mb-6">
+              <div className="text-xs font-bold uppercase tracking-wider text-text-faint mb-2">
+                Available Tiers
+              </div>
               {event.ticketTypes.map((ticket) => {
                 const available = ticket.total - ticket.sold - ticket.held;
                 const soldOut = available <= 0;
@@ -335,48 +361,55 @@ export default function EventDetailPage() {
                 return (
                   <div
                     key={ticket.id}
-                    className="flex items-center justify-between rounded-md border border-border bg-surface-secondary px-4 py-3.5 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-lg bg-surface-secondary border border-border"
                   >
-                    <div className="flex items-baseline gap-2.5 min-w-0">
-                      <span className="truncate text-[14px] font-semibold text-text-primary">
-                        {ticket.name}
-                      </span>
-                      <span
-                        className={`shrink-0 text-[12px] font-medium ${
-                          soldOut ? "text-red-500 font-semibold" : "text-text-muted"
-                        }`}
-                      >
-                        {soldOut ? "Sold out" : `${available} left`}
-                      </span>
+                    <div>
+                      <div className="text-xs font-bold text-text-primary">{ticket.name}</div>
+                      <div className={`text-[11px] font-medium ${soldOut ? "text-danger" : "text-text-muted"}`}>
+                        {soldOut ? "Sold out" : `${available} tickets remaining`}
+                      </div>
                     </div>
-                    <span className="shrink-0 text-[15px] font-bold tabular-nums text-text-primary">
-                      Rs.{ticket.price}
-                    </span>
+                    <div className="text-sm font-bold text-text-primary tabular-nums">
+                      Rs. {ticket.price}
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="mt-4 border-t border-border pt-4">
-              <button
-                id="buy-tickets-btn"
-                onClick={handleOpenBuyModal}
-                disabled={!canPurchase}
-                className="w-full rounded-md bg-primary py-2.5 px-4 text-[13px] font-semibold text-white transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {isSoldOut
-                  ? "Sold Out"
-                  : isCancelled
-                  ? "Event Cancelled"
-                  : isCompleted || isPast
-                  ? "Event Ended"
-                  : "Buy Tickets"}
-              </button>
+            {/* Primary Action Button */}
+            <button
+              id="buy-tickets-btn"
+              onClick={handleOpenBuyModal}
+              disabled={!canPurchase}
+              className="w-full py-3.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z" />
+              </svg>
+              {isSoldOut
+                ? "Sold Out"
+                : isCancelled
+                ? "Event Cancelled"
+                : isCompleted || isPast
+                ? "Event Concluded"
+                : "Select Tickets"}
+            </button>
+
+            <div className="mt-4 pt-4 border-t border-border flex items-center justify-center gap-4 text-[11px] text-text-muted">
+              <span className="flex items-center gap-1">
+                <span>🔒</span> Safe & Verified
+              </span>
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <span>📱</span> Digital Entry Pass
+              </span>
             </div>
           </div>
         </div>
       </div>
 
+      {/* Ticket Purchase / Booking Modal */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
@@ -385,13 +418,13 @@ export default function EventDetailPage() {
           }}
         >
           <div
-            className="relative w-full max-w-lg rounded-xl border border-border bg-surface p-6 shadow-2xl transition-all animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-lg rounded-2xl border border-border bg-surface p-6 sm:p-7 shadow-2xl transition-all animate-in zoom-in-95 duration-200"
             role="dialog"
             aria-modal="true"
           >
             {/* Modal Header */}
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="mb-6 flex items-center justify-between pb-4 border-b border-border">
+              <div className="flex items-center gap-2.5">
                 {modalStep === "summary" && (
                   <button
                     onClick={() => {
@@ -400,20 +433,25 @@ export default function EventDetailPage() {
                     }}
                     disabled={isHolding || isInitiatingPayment}
                     aria-label="Back to ticket selection"
-                    className="mr-1 rounded-md p-1 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary disabled:opacity-40"
+                    className="p-1 rounded-lg text-text-muted hover:bg-surface-secondary hover:text-text-primary disabled:opacity-40 cursor-pointer"
                   >
                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                     </svg>
                   </button>
                 )}
-                <h3 className="text-[13px] font-semibold uppercase tracking-wider text-text-primary">
-                  {modalStep === "select"
-                    ? "Purchase Tickets"
-                    : modalStep === "summary"
-                    ? "Order Summary"
-                    : "Processing Payment"}
-                </h3>
+                <div>
+                  <h3 className="text-base font-bold text-text-primary">
+                    {modalStep === "select"
+                      ? "Select Your Tickets"
+                      : modalStep === "summary"
+                      ? "Review & Confirm Order"
+                      : "Connecting to Payment Gateway"}
+                  </h3>
+                  <p className="text-xs text-text-muted truncate max-w-[280px]">
+                    {event.title}
+                  </p>
+                </div>
               </div>
 
               {modalStep !== "paying" && (
@@ -421,19 +459,19 @@ export default function EventDetailPage() {
                   onClick={closeModal}
                   disabled={isHolding || isInitiatingPayment}
                   aria-label="Close modal"
-                  className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-surface-hover hover:text-text-primary disabled:opacity-40"
+                  className="rounded-lg p-1.5 text-text-muted hover:bg-surface-secondary hover:text-text-primary disabled:opacity-40 cursor-pointer"
                 >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
                 </button>
               )}
             </div>
 
-            {/* Modal Body: STEP 1 - Select Tickets (Wireframe 2) */}
+            {/* Step 1: Select Quantities */}
             {modalStep === "select" && (
               <div>
-                <div className="max-h-[60vh] space-y-3 overflow-y-auto pr-0.5">
+                <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-1">
                   {event.ticketTypes.map((ticket) => {
                     const available = ticket.total - ticket.sold - ticket.held;
                     const soldOut = available <= 0;
@@ -443,144 +481,148 @@ export default function EventDetailPage() {
                     return (
                       <div
                         key={ticket.id}
-                        className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 rounded-lg border border-border bg-surface-secondary px-4 py-3.5"
+                        className="flex items-center justify-between gap-4 p-4 rounded-xl border border-border bg-surface-secondary"
                       >
-                        {/* Left: Name and Remaining */}
-                        <div className="min-w-0">
-                          <p className="truncate text-[14px] font-semibold text-text-primary">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-bold text-sm text-text-primary truncate">
                             {ticket.name}
                           </p>
-                          <p
-                            className={`mt-0.5 text-[12px] font-medium ${
-                              soldOut ? "text-red-500 font-semibold" : "text-text-muted"
-                            }`}
-                          >
-                            {soldOut ? "Sold out" : `${available} left`}
+                          <p className="text-xs font-bold text-accent tabular-nums mt-0.5">
+                            Rs. {ticket.price}
+                          </p>
+                          <p className={`text-[11px] font-medium mt-0.5 ${soldOut ? "text-danger" : "text-text-muted"}`}>
+                            {soldOut ? "Sold out" : `${available} remaining`}
                           </p>
                         </div>
 
-                        {/* Center: Stepper [ − ] 0 [ + ] */}
-                        <div className="flex items-center justify-center gap-2.5">
-                          {!soldOut ? (
-                            <>
-                              <button
-                                type="button"
-                                id={`qty-dec-${ticket.id}`}
-                                onClick={() => setQty(ticket.id, Math.max(0, qty - 1))}
-                                disabled={qty === 0}
-                                aria-label={`Decrease ${ticket.name} quantity`}
-                                className="flex h-7 w-7 items-center justify-center rounded border border-border bg-surface text-[15px] font-medium text-text-primary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                −
-                              </button>
-                              <span className="w-5 text-center text-[13px] font-semibold tabular-nums text-text-primary">
-                                {qty}
-                              </span>
-                              <button
-                                type="button"
-                                id={`qty-inc-${ticket.id}`}
-                                onClick={() => setQty(ticket.id, Math.min(maxQty, qty + 1))}
-                                disabled={qty >= maxQty}
-                                aria-label={`Increase ${ticket.name} quantity`}
-                                className="flex h-7 w-7 items-center justify-center rounded border border-border bg-surface text-[15px] font-medium text-text-primary transition-colors hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-40"
-                              >
-                                +
-                              </button>
-                            </>
-                          ) : (
-                            <span className="text-[12px] font-medium text-text-muted">—</span>
-                          )}
-                        </div>
-
-                        {/* Right: Price */}
-                        <div className="text-right">
-                          <span className="text-[15px] font-bold tabular-nums text-text-primary">
-                            Rs.{ticket.price}
+                        {/* Quantity Stepper */}
+                        {!soldOut ? (
+                          <div className="flex items-center gap-2 bg-surface border border-border rounded-lg p-1">
+                            <button
+                              type="button"
+                              id={`qty-dec-${ticket.id}`}
+                              onClick={() => setQty(ticket.id, Math.max(0, qty - 1))}
+                              disabled={qty === 0}
+                              aria-label={`Decrease ${ticket.name} quantity`}
+                              className="w-7 h-7 flex items-center justify-center rounded text-sm font-bold text-text-primary hover:bg-surface-secondary disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              −
+                            </button>
+                            <span className="w-6 text-center text-xs font-bold tabular-nums text-text-primary">
+                              {qty}
+                            </span>
+                            <button
+                              type="button"
+                              id={`qty-inc-${ticket.id}`}
+                              onClick={() => setQty(ticket.id, Math.min(maxQty, qty + 1))}
+                              disabled={qty >= maxQty}
+                              aria-label={`Increase ${ticket.name} quantity`}
+                              className="w-7 h-7 flex items-center justify-center rounded text-sm font-bold text-text-primary hover:bg-surface-secondary disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                            >
+                              +
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs font-semibold text-danger bg-danger-bg px-2.5 py-1 rounded">
+                            Sold Out
                           </span>
-                        </div>
+                        )}
                       </div>
                     );
                   })}
                 </div>
 
                 {localError && (
-                  <p className="mt-3 text-[12px] font-medium text-red-500">{localError}</p>
-                )}
-
-                {selectedItems.length > 0 && (
-                  <div className="mt-4 flex items-center justify-between pt-1">
-                    <span className="text-[13px] text-text-secondary">
-                      {selectedItems.reduce((s, i) => s + i.quantity, 0)} ticket
-                      {selectedItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""} selected
-                    </span>
-                    <span className="text-[14px] font-bold tabular-nums text-text-primary">
-                      Rs. {grandTotal}
-                    </span>
+                  <div className="mt-3 p-2.5 rounded-lg bg-danger-bg border border-danger-border text-xs font-medium text-danger">
+                    {localError}
                   </div>
                 )}
 
-                {/* Divider Line */}
-                <div className="my-4 border-t border-border" />
+                {/* Subtotal bar */}
+                <div className="mt-5 pt-4 border-t border-border flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-text-muted">Total Selection</span>
+                    <p className="text-xs font-semibold text-text-secondary">
+                      {selectedItems.reduce((s, i) => s + i.quantity, 0)} ticket
+                      {selectedItems.reduce((s, i) => s + i.quantity, 0) !== 1 ? "s" : ""}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs text-text-muted">Grand Total</span>
+                    <p className="text-xl font-extrabold text-text-primary tabular-nums">
+                      Rs. {grandTotal}
+                    </p>
+                  </div>
+                </div>
 
-                <div>
+                <div className="mt-5">
                   <button
                     id="proceed-checkout-btn"
                     onClick={handleProceedToConfirm}
-                    className="w-full rounded-md bg-primary py-2.5 px-4 text-[13px] font-semibold text-white transition-colors hover:bg-primary-light"
+                    disabled={selectedItems.length === 0}
+                    className="w-full py-3.5 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    Proceed To Checkout
+                    Proceed to Review
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Modal Body: STEP 2 - Order Summary (Wireframe 3) */}
+            {/* Step 2: Order Summary */}
             {modalStep === "summary" && (
               <div>
-                <div className="space-y-3 py-1">
+                <div className="space-y-3 p-4 rounded-xl bg-surface-secondary border border-border">
+                  <div className="text-xs font-bold uppercase tracking-wider text-text-faint mb-2">
+                    Order Items
+                  </div>
                   {selectedItems.map(({ ticketType, quantity }) => (
-                    <div key={ticketType.id} className="flex items-center justify-between text-[14px]">
-                      <span className="text-text-primary">
-                        {ticketType.name}{" "}
-                        <span className="text-text-muted">x  {quantity}</span>
-                      </span>
-                      <span className="font-medium tabular-nums text-text-primary">
-                        Rs.{ticketType.price * quantity}
+                    <div key={ticketType.id} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-text-primary">{ticketType.name}</span>
+                        <span className="text-xs font-bold text-accent bg-accent-light px-2 py-0.5 rounded-full">
+                          × {quantity}
+                        </span>
+                      </div>
+                      <span className="font-bold tabular-nums text-text-primary">
+                        Rs. {ticketType.price * quantity}
                       </span>
                     </div>
                   ))}
 
-                  <div className="my-3 border-t border-border" />
-
-                  <div className="flex items-center justify-between text-[15px] font-bold">
-                    <span className="text-text-primary">Total</span>
-                    <span className="tabular-nums text-text-primary">Rs. {grandTotal}</span>
+                  <div className="border-t border-border pt-3 mt-3 flex items-center justify-between">
+                    <span className="font-bold text-text-primary">Total Amount Due</span>
+                    <span className="text-lg font-extrabold tabular-nums text-accent">
+                      Rs. {grandTotal}
+                    </span>
                   </div>
                 </div>
 
                 {ticketError && (
-                  <p className="mt-3 text-[12px] font-medium text-red-500">{ticketError}</p>
+                  <div className="mt-3 p-3 rounded-lg bg-danger-bg border border-danger-border text-xs font-medium text-danger">
+                    {ticketError}
+                  </div>
                 )}
 
-                <div className="mt-6 space-y-2">
+                <div className="mt-6 space-y-2.5">
                   <button
                     id="confirm-pay-esewa-btn"
                     onClick={handleConfirmPurchase}
                     disabled={isHolding || isInitiatingPayment}
-                    className="flex w-full items-center justify-center gap-2 rounded-md bg-primary py-2.5 px-4 text-[13px] font-semibold text-white transition-colors hover:bg-primary-light disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full py-3.5 px-4 rounded-xl bg-[#60bb46] hover:bg-[#52a13b] text-white text-sm font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {isHolding || isInitiatingPayment ? (
                       <>
-                        <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                        </svg>
-                        {isHolding ? "Reserving tickets…" : "Opening eSewa…"}
+                        <div className="spinner !w-4 !h-4 !border-white !border-t-transparent" />
+                        <span>{isHolding ? "Holding reservation..." : "Redirecting to eSewa..."}</span>
                       </>
                     ) : (
-                      "Pay with eSewa"
+                      <>
+                        <span>Pay with eSewa</span>
+                        <span className="text-xs font-normal opacity-90">(Rs. {grandTotal})</span>
+                      </>
                     )}
                   </button>
+
                   <button
                     id="back-to-tickets-btn"
                     onClick={() => {
@@ -588,23 +630,20 @@ export default function EventDetailPage() {
                       clearError();
                     }}
                     disabled={isHolding || isInitiatingPayment}
-                    className="w-full rounded-md border border-border py-2 text-[13px] font-medium text-text-secondary transition-colors hover:bg-surface-hover hover:text-text-primary disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full py-2.5 px-4 rounded-xl border border-border text-xs font-semibold text-text-secondary hover:bg-surface-secondary transition-colors cursor-pointer"
                   >
-                    ← Back
+                    ← Edit Selection
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Modal Body: STEP 3 - Paying / Redirecting */}
+            {/* Step 3: Paying / Redirecting */}
             {modalStep === "paying" && (
-              <div className="py-8 text-center">
-                <Spinner />
-                <p className="mt-4 text-[14px] font-medium text-text-primary">
-                  Redirecting to eSewa…
-                </p>
-                <p className="mt-1 text-[12px] text-text-muted">
-                  Please do not close or refresh this page.
+              <div className="py-12 text-center">
+                <Spinner label="Transferring to eSewa secure payment gateway..." />
+                <p className="mt-3 text-xs text-text-muted">
+                  Please hold on. Do not close or refresh this tab while your order is registered.
                 </p>
               </div>
             )}

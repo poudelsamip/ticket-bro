@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import api from "@/lib/api";
 import { useAuthStore } from "@/stores/auth.store";
 import type { ApiResponse } from "@/types";
+import Spinner from "@/components/Spinner";
 
 interface ScanResult {
   alreadyScanned: boolean;
@@ -38,7 +39,7 @@ export default function StaffScanPage() {
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { message?: string } } }).response?.data
-          ?.message ?? "Scan failed — invalid or unknown QR code";
+          ?.message ?? "Scan failed — invalid, cancelled, or unrecognized QR code";
       setResult({ status: "error", message: msg });
     }
   };
@@ -54,126 +55,138 @@ export default function StaffScanPage() {
     setQrCode("");
   };
 
-  if (!isInitialized) {
-    return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-primary border-t-transparent" />
-      </div>
-    );
-  }
+  if (!isInitialized) return <Spinner label="Authenticating staff permissions..." />;
 
   if (!user || user.role !== "STAFF") {
     return (
-      <div className="flex flex-col items-center py-24 text-center">
-        <p className="mb-4 text-[14px] text-text-secondary">
-          This page is only accessible to staff members.
-        </p>
-        <Link
-          to="/login"
-          className="text-[13px] font-medium underline underline-offset-4"
-        >
-          Login
-        </Link>
+      <div className="page-container--form">
+        <div className="empty-state max-w-md w-full">
+          <svg className="empty-state__icon text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />
+          </svg>
+          <h2 className="empty-state__title">Staff Access Restricted</h2>
+          <p className="empty-state__body">
+            This terminal is restricted exclusively to authorized gate check-in staff members.
+          </p>
+          <Link to="/login" className="navbar__btn text-xs">
+            Sign In with Staff Account
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-lg px-6 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight">Ticket Scanner</h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          Enter a ticket QR code to check in an attendee.
-        </p>
+    <div className="page-container--narrow">
+      {/* Header */}
+      <div className="mb-8 pb-6 border-b border-border flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="navbar__role-tag !bg-accent-light !text-accent font-bold">
+              Staff Portal
+            </span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+            Ticket Gate Scanner
+          </h1>
+          <p className="mt-1 text-xs text-text-muted">
+            Scan attendee digital QR codes or enter ticket string manually for instant gate verification
+          </p>
+        </div>
       </div>
 
-      {/* Input form */}
+      {/* Scanner Input Card */}
       <form
         onSubmit={(e) => void handleSubmit(e)}
-        className="mb-6 rounded-xl border border-border bg-white p-6 shadow-sm"
+        className="card card--padded shadow-md border-border bg-surface mb-8"
       >
         <label
           htmlFor="qr-input"
-          className="mb-1.5 block text-sm font-medium text-text-secondary"
+          className="block text-xs font-bold uppercase tracking-wider text-text-faint mb-2"
         >
-          QR Code
+          Scan or Enter QR Code String
         </label>
-        <div className="flex gap-3">
-          <input
-            id="qr-input"
-            type="text"
-            autoFocus
-            autoComplete="off"
-            value={qrCode}
-            onChange={(e) => setQrCode(e.target.value)}
-            placeholder="Paste or scan QR code here…"
-            className="flex-1 rounded-lg border border-border-light bg-white px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-text-primary font-mono"
-          />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <input
+              id="qr-input"
+              type="text"
+              autoFocus
+              autoComplete="off"
+              value={qrCode}
+              onChange={(e) => setQrCode(e.target.value)}
+              placeholder="e.g. TKT-98F4-490B..."
+              className="w-full rounded-xl border border-border bg-surface-secondary px-4 py-3 text-sm font-mono text-text-primary placeholder:text-text-faint outline-none transition-all focus:border-accent focus:bg-surface focus:ring-2 focus:ring-accent/10"
+            />
+          </div>
           <button
             id="scan-submit-btn"
             type="submit"
             disabled={result.status === "loading" || !qrCode.trim()}
-            className="shrink-0 cursor-pointer rounded-lg bg-text-primary px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            className="py-3 px-6 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer shrink-0"
           >
-            {result.status === "loading" ? "…" : "Scan"}
+            {result.status === "loading" ? (
+              <>
+                <div className="spinner !w-3.5 !h-3.5 !border-white !border-t-transparent" />
+                <span>Checking...</span>
+              </>
+            ) : (
+              "Validate Pass"
+            )}
           </button>
         </div>
-        <p className="mt-2 text-[11px] text-text-muted">
-          Tip: if using a barcode scanner, focus this field and scan — it
-          submits automatically.
+        <p className="mt-3 text-[11px] text-text-muted flex items-center gap-1.5">
+          <span>💡</span> Focus this field when using physical handheld USB/Bluetooth barcode scanners.
         </p>
       </form>
 
-      {/* Result */}
+      {/* Result Display */}
       {result.status === "success" && (
-        <div className="rounded-xl border border-green-300 bg-green-50 p-6 shadow-sm">
+        <div className="card overflow-hidden border-2 border-success-border bg-success-bg p-6 sm:p-7 shadow-lg animate-in zoom-in-95 duration-200">
           <div className="flex items-start gap-4">
-            {/* Icon */}
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100">
-              <svg
-                className="h-6 w-6 text-green-600"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={2}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M5 13l4 4L19 7"
-                />
+            <div className="w-12 h-12 rounded-2xl bg-white text-success border border-success-border flex items-center justify-center shrink-0 shadow-xs">
+              <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
               </svg>
             </div>
 
-            {/* Info */}
             <div className="flex-1 min-w-0">
-              <p className="text-base font-bold text-green-800">
-                Check-In Successful
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-base sm:text-lg font-extrabold text-success tracking-tight">
+                  {result.data.alreadyScanned ? "Ticket Already Checked In!" : "Valid Ticket — Access Granted"}
+                </span>
+                {result.data.alreadyScanned && (
+                  <span className="status-pill status-pill--CANCELLED text-[10px]">
+                    DUPLICATE
+                  </span>
+                )}
+              </div>
 
-              <div className="mt-3 space-y-1.5">
-                <Row
-                  label="Holder"
-                  value={result.data.ticket.holder}
-                  highlight
-                />
-                <Row label="Event" value={result.data.ticket.event} />
-                <Row
-                  label="Ticket type"
-                  value={result.data.ticket.ticketType}
-                />
-                <Row
-                  label="Checked in at"
-                  value={new Date(result.data.checkedInAt).toLocaleString(
-                    "en-US",
-                    {
+              <div className="mt-4 space-y-2 bg-white/70 p-4 rounded-xl border border-success-border/50 text-xs">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-text-faint font-bold uppercase tracking-wider text-[10px]">Attendee</span>
+                  <span className="font-bold text-sm text-text-primary">{result.data.ticket.holder}</span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-text-faint font-bold uppercase tracking-wider text-[10px]">Event</span>
+                  <span className="font-semibold text-text-secondary truncate max-w-[220px]">{result.data.ticket.event}</span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-text-faint font-bold uppercase tracking-wider text-[10px]">Tier</span>
+                  <span className="font-bold text-accent bg-accent-light px-2 py-0.5 rounded">{result.data.ticket.ticketType}</span>
+                </div>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-text-faint font-bold uppercase tracking-wider text-[10px]">Timestamp</span>
+                  <span className="text-text-muted font-mono">
+                    {new Date(result.data.checkedInAt).toLocaleString("en-US", {
                       month: "short",
                       day: "numeric",
                       hour: "2-digit",
                       minute: "2-digit",
-                    },
-                  )}
-                />
+                      second: "2-digit",
+                    })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -181,66 +194,39 @@ export default function StaffScanPage() {
           <button
             id="scan-again-btn"
             onClick={handleReset}
-            className="mt-5 w-full cursor-pointer rounded-lg border border-current py-2 text-sm font-semibold transition-opacity hover:opacity-70"
+            className="mt-6 w-full py-3 px-4 rounded-xl bg-success text-white text-xs font-bold uppercase tracking-wider hover:opacity-90 shadow-sm transition-all cursor-pointer"
           >
-            Scan next ticket
+            Scan Next Attendee Pass →
           </button>
         </div>
       )}
 
       {result.status === "error" && (
-        <div className="rounded-xl border border-red-300 bg-red-50 p-6 shadow-sm">
-          <div className="flex items-start gap-3">
-            <svg
-              className="mt-0.5 h-5 w-5 shrink-0 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+        <div className="card overflow-hidden border-2 border-danger-border bg-danger-bg p-6 shadow-lg animate-in zoom-in-95 duration-200">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-white text-danger border border-danger-border flex items-center justify-center shrink-0">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </div>
             <div>
-              <p className="font-semibold text-red-800">Scan Failed</p>
-              <p className="mt-1 text-sm text-red-700">{result.message}</p>
+              <p className="text-base font-extrabold text-danger tracking-tight">
+                Scan Verification Failed
+              </p>
+              <p className="mt-1 text-xs font-medium text-danger/80 leading-relaxed">
+                {result.message}
+              </p>
             </div>
           </div>
           <button
             id="scan-retry-btn"
             onClick={handleReset}
-            className="mt-4 w-full cursor-pointer rounded-lg border border-red-400 py-2 text-sm font-semibold text-red-700 transition-opacity hover:opacity-70"
+            className="mt-5 w-full py-2.5 px-4 rounded-xl border border-danger-border bg-white text-xs font-bold text-danger hover:bg-danger-bg transition-colors cursor-pointer"
           >
-            Try again
+            Try Scanning Again
           </button>
         </div>
       )}
-    </div>
-  );
-}
-
-function Row({
-  label,
-  value,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div className="flex items-baseline gap-2">
-      <span className="w-24 shrink-0 text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-        {label}
-      </span>
-      <span
-        className={`text-sm ${highlight ? "font-semibold text-text-primary" : "text-text-secondary"}`}
-      >
-        {value}
-      </span>
     </div>
   );
 }

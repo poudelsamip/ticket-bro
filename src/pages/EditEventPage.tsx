@@ -10,7 +10,6 @@ import ImageUpload from "@/components/ImageUpload";
 const STATUS_OPTIONS = ["DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"] as const;
 
 function toDateInputValue(isoDate: string) {
-  // isoDate may be "2026-10-10T00:00:00.000Z" or "2026-10-10"
   return isoDate.slice(0, 10);
 }
 
@@ -42,7 +41,7 @@ export default function EditEventPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  // Form state — seeded from currentEvent once loaded
+  // Form state
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -105,7 +104,6 @@ export default function EditEventPage() {
       .get<ApiResponse<{ categories: EventCategory[] }>>("/categories")
       .then((res) => {
         setCategories(res.data.data.categories);
-        // Set categoryId: prefer matching by name (since OrgEventDetail only has name)
         if (currentEvent && res.data.data.categories.length > 0) {
           const match = res.data.data.categories.find(
             (c) => c.name === currentEvent.category.name
@@ -132,7 +130,6 @@ export default function EditEventPage() {
 
     setIsSubmitting(true);
 
-    // Upload banner image first if a new file was selected
     let resolvedBannerUrl = bannerUrl;
     if (bannerFile) {
       try {
@@ -183,7 +180,6 @@ export default function EditEventPage() {
       );
       const targetSlug = res.data?.data?.slug || currentEvent.slug || slug;
       setSuccess(true);
-      // Refresh store so detail page is up to date
       if (targetSlug) {
         void fetchOrgEventBySlug(targetSlug);
         setTimeout(() => void navigate(`/organizer/events/${targetSlug}`), 800);
@@ -206,258 +202,278 @@ export default function EditEventPage() {
     }
   };
 
-  if (!isInitialized || isLoading || !seeded) return <Spinner />;
+  if (!isInitialized || isLoading || !seeded) return <Spinner label="Loading event data..." />;
   if (!currentEvent) return null;
 
   const inputClass =
-    "w-full rounded-lg border border-border-light bg-white px-4 py-2.5 text-base text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-text-primary";
-  const labelClass = "mb-1.5 block text-sm font-medium text-text-secondary";
-  const sectionTitle = "text-sm font-semibold text-text-primary mb-3";
+    "w-full rounded-xl border border-border bg-surface-secondary px-4 py-2.5 text-sm text-text-primary placeholder:text-text-faint outline-none transition-all focus:border-accent focus:bg-surface focus:ring-2 focus:ring-accent/10";
+  const labelClass = "block text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5";
+  const sectionTitle = "text-base font-bold text-text-primary mb-4 pb-2 border-b border-border flex items-center gap-2";
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10 sm:px-6">
-      {/* Back */}
+    <div className="page-container--narrow">
+      {/* Back link */}
       <Link
         to={`/organizer/events/${currentEvent?.slug ?? slug}`}
-        className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-text-muted hover:text-text-primary"
+        className="back-link"
       >
-        <svg
-          className="h-3.5 w-3.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 19.5L8.25 12l7.5-7.5"
-          />
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
-        Back to event
+        Back to event details
       </Link>
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-text-primary">Edit Event</h1>
-        <p className="mt-1.5 text-sm text-text-secondary">
-          Update the details for <span className="font-medium">{currentEvent.title}</span>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+          Edit Event Details
+        </h1>
+        <p className="mt-1 text-xs text-text-muted">
+          Update the listing metadata, venue details, or lifecycle status for <span className="font-semibold text-text-primary">{currentEvent.title}</span>
         </p>
       </div>
 
-      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-8">
+      <form onSubmit={(e) => void handleSubmit(e)} className="space-y-6">
         {error && (
-          <div className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">
-            {error}
+          <div className="p-4 rounded-xl bg-danger-bg border border-danger-border text-xs font-semibold text-danger flex items-center gap-2">
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+            </svg>
+            <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className="rounded-lg bg-green-50 px-4 py-2.5 text-sm text-green-700">
-            Event updated successfully! Redirecting…
+          <div className="p-4 rounded-xl bg-success-bg border border-success-border text-xs font-semibold text-success flex items-center gap-2">
+            <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
+            <span>Event updated successfully! Redirecting back...</span>
           </div>
         )}
 
         {/* Basic Info */}
-        <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h2 className={sectionTitle}>Basic Information</h2>
+        <div className="card card--padded bg-surface border-border shadow-xs">
+          <h2 className={sectionTitle}>
+            <span>1. Basic Details</span>
+          </h2>
 
-          <div>
-            <label htmlFor="edit-title" className={labelClass}>
-              Event title
-            </label>
-            <input
-              id="edit-title"
-              type="text"
-              maxLength={100}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={inputClass}
-              placeholder="e.g. Summer Music Festival"
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="edit-title" className={labelClass}>
+                Event Title
+              </label>
+              <input
+                id="edit-title"
+                type="text"
+                maxLength={100}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={inputClass}
+                placeholder="e.g. Summer Music Festival"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="edit-description" className={labelClass}>
+                Description
+              </label>
+              <textarea
+                id="edit-description"
+                maxLength={1000}
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={`${inputClass} resize-none`}
+                placeholder="Describe your event..."
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="edit-category" className={labelClass}>
+                  Category
+                </label>
+                <select
+                  id="edit-category"
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className={inputClass}
+                >
+                  {categories.length === 0 && (
+                    <option value="">Loading categories...</option>
+                  )}
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="edit-status" className={labelClass}>
+                  Lifecycle Status
+                </label>
+                <select
+                  id="edit-status"
+                  value={status}
+                  onChange={(e) =>
+                    setStatus(e.target.value as (typeof STATUS_OPTIONS)[number])
+                  }
+                  className={inputClass}
+                >
+                  {STATUS_OPTIONS.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <ImageUpload
+              id="edit-banner"
+              label="Banner Image"
+              value={bannerUrl}
+              onFileSelect={(file) => {
+                setBannerFile(file);
+                if (!file) setBannerUrl("");
+              }}
             />
           </div>
-
-          <div>
-            <label htmlFor="edit-description" className={labelClass}>
-              Description
-            </label>
-            <textarea
-              id="edit-description"
-              maxLength={1000}
-              rows={4}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={`${inputClass} resize-none`}
-              placeholder="Describe your event..."
-            />
-          </div>
-
-          <div>
-            <label htmlFor="edit-category" className={labelClass}>
-              Category
-            </label>
-            <select
-              id="edit-category"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className={inputClass}
-            >
-              {categories.length === 0 && (
-                <option value="">Loading categories...</option>
-              )}
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <ImageUpload
-            id="edit-banner"
-            label="Banner Image"
-            value={bannerUrl}
-            onFileSelect={(file) => {
-              setBannerFile(file);
-              if (!file) setBannerUrl("");
-            }}
-          />
-
-          <div>
-            <label htmlFor="edit-status" className={labelClass}>
-              Status
-            </label>
-            <select
-              id="edit-status"
-              value={status}
-              onChange={(e) =>
-                setStatus(e.target.value as (typeof STATUS_OPTIONS)[number])
-              }
-              className={inputClass}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </div>
-        </section>
+        </div>
 
         {/* Date & Time */}
-        <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h2 className={sectionTitle}>Date & Time</h2>
+        <div className="card card--padded bg-surface border-border shadow-xs">
+          <h2 className={sectionTitle}>
+            <span>2. Schedule & Time</span>
+          </h2>
 
-          <div>
-            <label htmlFor="edit-date" className={labelClass}>
-              Date
-            </label>
-            <input
-              id="edit-date"
-              type="date"
-              min={getTodayDateString()}
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className={inputClass}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div>
-              <label htmlFor="edit-start" className={labelClass}>
-                Start time
+              <label htmlFor="edit-date" className={labelClass}>
+                Event Date
               </label>
               <input
-                id="edit-start"
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
+                id="edit-date"
+                type="date"
+                min={getTodayDateString()}
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 className={inputClass}
               />
             </div>
-            <div>
-              <label htmlFor="edit-end" className={labelClass}>
-                End time
-              </label>
-              <input
-                id="edit-end"
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className={inputClass}
-              />
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="edit-start" className={labelClass}>
+                  Start Time
+                </label>
+                <input
+                  id="edit-start"
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-end" className={labelClass}>
+                  End Time (Optional)
+                </label>
+                <input
+                  id="edit-end"
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
             </div>
           </div>
-        </section>
+        </div>
 
         {/* Venue */}
-        <section className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm">
-          <h2 className={sectionTitle}>Venue</h2>
+        <div className="card card--padded bg-surface border-border shadow-xs">
+          <h2 className={sectionTitle}>
+            <span>3. Venue Coordinates</span>
+          </h2>
 
-          <div>
-            <label htmlFor="edit-venue-name" className={labelClass}>
-              Venue name
-            </label>
-            <input
-              id="edit-venue-name"
-              type="text"
-              value={venueName}
-              onChange={(e) => setVenueName(e.target.value)}
-              className={inputClass}
-              placeholder="e.g. Dashrath Rangashala"
-            />
-          </div>
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="edit-venue-name" className={labelClass}>
+                Venue Name
+              </label>
+              <input
+                id="edit-venue-name"
+                type="text"
+                value={venueName}
+                onChange={(e) => setVenueName(e.target.value)}
+                className={inputClass}
+                placeholder="e.g. Dashrath Rangashala"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="edit-venue-address" className={labelClass}>
-              Address
-            </label>
-            <input
-              id="edit-venue-address"
-              type="text"
-              value={venueAddress}
-              onChange={(e) => setVenueAddress(e.target.value)}
-              className={inputClass}
-              placeholder="Full address"
-            />
-          </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="edit-venue-address" className={labelClass}>
+                  Street Address
+                </label>
+                <input
+                  id="edit-venue-address"
+                  type="text"
+                  value={venueAddress}
+                  onChange={(e) => setVenueAddress(e.target.value)}
+                  className={inputClass}
+                  placeholder="Full address"
+                />
+              </div>
+              <div>
+                <label htmlFor="edit-venue-district" className={labelClass}>
+                  District / City
+                </label>
+                <input
+                  id="edit-venue-district"
+                  type="text"
+                  value={venueDistrict}
+                  onChange={(e) => setVenueDistrict(e.target.value)}
+                  className={inputClass}
+                  placeholder="Kathmandu"
+                />
+              </div>
+            </div>
 
-          <div>
-            <label htmlFor="edit-venue-district" className={labelClass}>
-              District
-            </label>
-            <input
-              id="edit-venue-district"
-              type="text"
-              value={venueDistrict}
-              onChange={(e) => setVenueDistrict(e.target.value)}
-              className={inputClass}
-              placeholder="e.g. Kathmandu"
-            />
+            <div>
+              <label htmlFor="edit-venue-gmaps" className={labelClass}>
+                Google Maps Link
+              </label>
+              <input
+                id="edit-venue-gmaps"
+                type="url"
+                value={venueGoogleMaps}
+                onChange={(e) => setVenueGoogleMaps(e.target.value)}
+                className={inputClass}
+                placeholder="https://maps.google.com/..."
+              />
+            </div>
           </div>
-
-          <div>
-            <label htmlFor="edit-venue-gmaps" className={labelClass}>
-              Google Maps link
-            </label>
-            <input
-              id="edit-venue-gmaps"
-              type="url"
-              value={venueGoogleMaps}
-              onChange={(e) => setVenueGoogleMaps(e.target.value)}
-              className={inputClass}
-              placeholder="https://maps.google.com/..."
-            />
-          </div>
-        </section>
+        </div>
 
         {/* Submit */}
         <button
           type="submit"
           id="edit-event-submit"
           disabled={isSubmitting}
-          className="w-full cursor-pointer rounded-lg bg-text-primary py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+          className="w-full py-4 px-6 rounded-xl bg-accent hover:bg-accent-hover text-white text-sm font-bold uppercase tracking-wider shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
         >
-          {isSubmitting ? "Saving changes..." : "Save Changes"}
+          {isSubmitting ? (
+            <>
+              <div className="spinner !w-4 !h-4 !border-white !border-t-transparent" />
+              <span>Saving Changes...</span>
+            </>
+          ) : (
+            "Save Changes"
+          )}
         </button>
       </form>
     </div>

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router";
 import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { useAuthStore } from "@/stores/auth.store";
 import HomePage from "@/pages/HomePage";
 import EventsPage from "@/pages/EventsPage";
@@ -27,15 +28,12 @@ import AdminPaymentsPage from "@/pages/admin/AdminPaymentsPage";
 import AdminRefundsPage from "@/pages/admin/AdminRefundsPage";
 import AdminPayoutsPage from "@/pages/admin/AdminPayoutsPage";
 
-
-
 export default function App() {
   const initializeAuth = useAuthStore((s) => s.initializeAuth);
 
   useEffect(() => {
     void initializeAuth();
   }, [initializeAuth]);
-
 
   return (
     <BrowserRouter>
@@ -48,34 +46,37 @@ export default function App() {
         <Route path="/admin/refunds" element={<AdminRefundsPage />} />
         <Route path="/admin/payouts" element={<AdminPayoutsPage />} />
 
-        {/* ── Public / user-facing routes (with Navbar) ── */}
+        {/* ── Public / user-facing routes (with Navbar & Footer) ── */}
         <Route
           path="*"
           element={
-            <div className="min-h-screen bg-surface">
-              <Navbar />
-              <main>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/events" element={<EventsPage />} />
-                  <Route path="/events/new" element={<AddEventPage />} />
-                  <Route path="/events/:slug" element={<EventDetailPage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterUserPage />} />
-                  <Route path="/register/organizer" element={<RegisterOrganizerPage />} />
-                  <Route path="/payment-success" element={<PaymentSuccessPage />} />
-                  <Route path="/payment-failed" element={<PaymentFailedPage />} />
-                  <Route path="/my-tickets" element={<MyTicketsPage />} />
-                  <Route path="/my-tickets/:eventId" element={<EventTicketDetailPage />} />
-                  <Route path="/organizer/events" element={<OrganizerEventsPage />} />
-                  <Route path="/organizer/events/:slug" element={<OrganizerEventDetailPage />} />
-                  <Route path="/organizer/events/:slug/edit" element={<EditEventPage />} />
-                  <Route path="/organizer/staff" element={<OrganizerStaffPage />} />
-                  <Route path="/staff/accept-invite" element={<AcceptInvitePage />} />
-                  <Route path="/staff/scan" element={<StaffScanPage />} />
-                  <Route path="*" element={<NotFoundPage />} />
-                </Routes>
-              </main>
+            <div className="min-h-screen bg-surface flex flex-col justify-between">
+              <div className="flex-1 flex flex-col">
+                <Navbar />
+                <main className="flex-1">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/events" element={<EventsPage />} />
+                    <Route path="/events/new" element={<AddEventPage />} />
+                    <Route path="/events/:slug" element={<EventDetailPage />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route path="/register" element={<RegisterUserPage />} />
+                    <Route path="/register/organizer" element={<RegisterOrganizerPage />} />
+                    <Route path="/payment-success" element={<PaymentSuccessPage />} />
+                    <Route path="/payment-failed" element={<PaymentFailedPage />} />
+                    <Route path="/my-tickets" element={<MyTicketsPage />} />
+                    <Route path="/my-tickets/:eventId" element={<EventTicketDetailPage />} />
+                    <Route path="/organizer/events" element={<OrganizerEventsPage />} />
+                    <Route path="/organizer/events/:slug" element={<OrganizerEventDetailPage />} />
+                    <Route path="/organizer/events/:slug/edit" element={<EditEventPage />} />
+                    <Route path="/organizer/staff" element={<OrganizerStaffPage />} />
+                    <Route path="/staff/accept-invite" element={<AcceptInvitePage />} />
+                    <Route path="/staff/scan" element={<StaffScanPage />} />
+                    <Route path="*" element={<NotFoundPage />} />
+                  </Routes>
+                </main>
+              </div>
+              <Footer />
             </div>
           }
         />

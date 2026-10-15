@@ -6,13 +6,6 @@ import Spinner from "@/components/Spinner";
 import api from "@/lib/api";
 import type { ApiResponse } from "@/types";
 
-const STATUS_STYLES: Record<string, string> = {
-  DRAFT: "bg-neutral-100 text-neutral-600",
-  PUBLISHED: "bg-green-50 text-green-700",
-  CANCELLED: "bg-red-50 text-red-600",
-  COMPLETED: "bg-blue-50 text-blue-700",
-};
-
 interface ScanStat {
   id: string;
   scanned: number;
@@ -32,7 +25,6 @@ export default function OrganizerEventDetailPage() {
     }
   }, [isInitialized, user, slug, fetchOrgEventBySlug]);
 
-  // Fetch scan stats once we have the event id
   useEffect(() => {
     if (!currentEvent?.id) return;
     api
@@ -51,34 +43,31 @@ export default function OrganizerEventDetailPage() {
       });
   }, [currentEvent?.id]);
 
-  if (!isInitialized || isLoading) return <Spinner />;
+  if (!isInitialized || isLoading) return <Spinner label="Loading event analytics..." />;
 
   if (!user || user.role !== "ORGANIZER") {
     return (
-      <div className="flex flex-col items-center py-24 text-center">
-        <p className="mb-4 text-[14px] text-text-secondary">
-          This page is only accessible to organizers.
-        </p>
-        <Link
-          to="/login"
-          className="text-[13px] font-medium underline underline-offset-4"
-        >
-          Login
-        </Link>
+      <div className="page-container--form">
+        <div className="empty-state max-w-md w-full">
+          <h2 className="empty-state__title">Organizer Access Only</h2>
+          <p className="empty-state__body">Please sign in with your organizer account.</p>
+          <Link to="/login" className="navbar__btn text-xs">
+            Sign In
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center py-24 text-center">
-        <p className="mb-4 text-[14px] text-red-500">{error}</p>
-        <Link
-          to="/organizer/events"
-          className="text-[13px] font-medium underline underline-offset-4"
-        >
-          ← Back to my events
-        </Link>
+      <div className="page-container--form">
+        <div className="empty-state max-w-md w-full">
+          <p className="text-danger text-sm font-semibold mb-3">{error}</p>
+          <Link to="/organizer/events" className="navbar__btn text-xs">
+            ← Return to My Events
+          </Link>
+        </div>
       </div>
     );
   }
@@ -114,71 +103,93 @@ export default function OrganizerEventDetailPage() {
     : null;
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 lg:px-8">
-      {/* Back link */}
-      <Link
-        to="/organizer/events"
-        className="mb-6 inline-flex items-center gap-1.5 text-[13px] text-text-muted hover:text-text-primary"
-      >
-        <svg
-          className="h-3.5 w-3.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15.75 19.5L8.25 12l7.5-7.5"
-          />
+    <div className="page-container">
+      {/* Back button */}
+      <Link to="/organizer/events" className="back-link">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
-        My Events
+        Back to my events
       </Link>
 
-      {/* Banner */}
-      {ev.bannerUrl && (
-        <img
-          src={ev.bannerUrl}
-          alt={ev.title}
-          className="mb-6 h-48 w-full rounded-xl object-cover"
-        />
-      )}
+      {/* Header bar */}
+      <div className="card card--padded bg-surface border-border shadow-sm mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className={`status-pill status-pill--${ev.status} text-[10px]`}>
+                {ev.status}
+              </span>
+              <span className="text-xs text-text-faint">•</span>
+              <span className="text-xs font-semibold text-accent uppercase tracking-wider">
+                {ev.category.name}
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary">
+              {ev.title}
+            </h1>
+            <p className="text-xs text-text-muted mt-1">
+              Seating configuration: <span className="font-semibold text-text-secondary">{ev.seatingType === "GENERAL" ? "General Admission" : "Reserved Blocks"}</span>
+            </p>
+          </div>
 
-      {/* Title + Status */}
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{ev.title}</h1>
-          <p className="mt-1 text-[13px] text-text-muted">
-            {ev.category.name} {'·'}{" "}
-            {ev.seatingType === "GENERAL"
-              ? "General Admission"
-              : "Block Seating"}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`rounded-full px-3 py-1 text-[12px] font-semibold ${STATUS_STYLES[ev.status] ?? ""}`}
-          >
-            {ev.status}
-          </span>
-          <Link
-            to={`/organizer/events/${ev.slug}/edit`}
-            id="edit-event-btn"
-            className="rounded-md border border-border px-3 py-1.5 text-[12px] font-medium text-text-secondary transition-colors hover:border-text-primary hover:text-text-primary"
-          >
-            Edit
-          </Link>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link
+              to={`/events/${ev.slug}`}
+              target="_blank"
+              className="px-4 py-2 rounded-xl border border-border text-xs font-semibold text-text-secondary hover:bg-surface-secondary transition-colors"
+            >
+              Public Page ↗
+            </Link>
+            <Link
+              to={`/organizer/events/${ev.slug}/edit`}
+              id="edit-event-btn"
+              className="navbar__btn navbar__btn--accent text-xs font-bold uppercase tracking-wider py-2.5 px-4"
+            >
+              Edit Details
+            </Link>
+          </div>
         </div>
       </div>
 
-      {/* Key Info */}
-      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-border bg-surface-secondary p-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Date
-          </p>
-          <p className="mt-1 text-[14px] font-medium">
+      {/* Stat Cards Grid */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="stat-block shadow-xs">
+          <div className="stat-block__label">Total Capacity</div>
+          <div className="stat-block__value">{totalTickets}</div>
+        </div>
+
+        <div className="stat-block shadow-xs">
+          <div className="stat-block__label">Passes Sold</div>
+          <div className="stat-block__value">{totalSold}</div>
+          <span className="text-[11px] text-text-muted font-medium mt-1 inline-block">
+            {totalTickets > 0 ? Math.round((totalSold / totalTickets) * 100) : 0}% booked
+          </span>
+        </div>
+
+        <div className="stat-block stat-block--success shadow-xs">
+          <div className="stat-block__label">Gate Check-Ins</div>
+          <div className="stat-block__value">{totalScanned}</div>
+          <span className="text-[11px] text-success font-medium mt-1 inline-block">
+            {totalSold > 0 ? Math.round((totalScanned / totalSold) * 100) : 0}% attendance
+          </span>
+        </div>
+
+        <div className="stat-block shadow-xs">
+          <div className="stat-block__label">Gross Revenue</div>
+          <div className="stat-block__value text-xl font-extrabold text-accent">
+            NPR {totalRevenue.toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* Two Column Layout: Event Details + Venue */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+        <div className="card card--padded bg-surface">
+          <div className="text-xs font-bold uppercase tracking-wider text-text-faint mb-3">
+            Schedule Info
+          </div>
+          <p className="text-sm font-semibold text-text-primary">
             {new Date(ev.date).toLocaleDateString("en-US", {
               weekday: "long",
               year: "numeric",
@@ -187,20 +198,19 @@ export default function OrganizerEventDetailPage() {
             })}
           </p>
           {formattedStartTime && (
-            <p className="mt-1 text-[13px] text-text-muted">
-              {formattedStartTime}
-              {formattedEndTime ? ` – ${formattedEndTime}` : ""}
+            <p className="text-xs text-text-muted mt-1">
+              Starts at {formattedStartTime} {formattedEndTime ? `(until ${formattedEndTime})` : ""}
             </p>
           )}
         </div>
 
         {ev.venue && (
-          <div className="rounded-lg border border-border bg-surface-secondary p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-              Venue
-            </p>
-            <p className="mt-1 text-[14px] font-medium">{ev.venue.name}</p>
-            <p className="text-[12px] text-text-muted">
+          <div className="card card--padded bg-surface">
+            <div className="text-xs font-bold uppercase tracking-wider text-text-faint mb-3">
+              Venue & Coordinates
+            </div>
+            <p className="text-sm font-semibold text-text-primary">{ev.venue.name}</p>
+            <p className="text-xs text-text-muted mt-1">
               {ev.venue.address}, {ev.venue.district}
             </p>
             {ev.venue.googleMaps && (
@@ -208,90 +218,47 @@ export default function OrganizerEventDetailPage() {
                 href={ev.venue.googleMaps}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-1 inline-block text-[12px] underline underline-offset-4"
+                className="inline-flex items-center gap-1 text-xs text-accent font-semibold hover:underline mt-2"
               >
-                View on Maps →
+                View on Google Maps ↗
               </a>
             )}
           </div>
         )}
       </div>
 
-      {/* Sales + Check-in Summary */}
-      <div className="mb-6 grid grid-cols-4 gap-4">
-        <div className="rounded-lg border border-border bg-surface-secondary p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Capacity
-          </p>
-          <p className="mt-1 text-xl font-bold">{totalTickets}</p>
+      {/* Ticket Tiers Breakdown Table */}
+      <div className="card overflow-hidden border-border bg-surface shadow-xs mb-8">
+        <div className="p-4 sm:p-5 border-b border-border flex items-center justify-between">
+          <h2 className="text-sm font-bold text-text-primary">Ticket Tiers & Gate Scans</h2>
+          <span className="text-xs text-text-muted">{ev.ticketTypes.length} configured tiers</span>
         </div>
-        <div className="rounded-lg border border-border bg-surface-secondary p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Sold
-          </p>
-          <p className="mt-1 text-xl font-bold">{totalSold}</p>
-        </div>
-        <div className="rounded-lg border border-border bg-green-50 p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-green-600">
-            Scanned
-          </p>
-          <p className="mt-1 text-xl font-bold text-green-700">
-            {totalScanned}
-          </p>
-        </div>
-        <div className="rounded-lg border border-border bg-surface-secondary p-4 text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
-            Revenue
-          </p>
-          <p className="mt-1 text-xl font-bold">
-            NPR {totalRevenue.toLocaleString()}
-          </p>
-        </div>
-      </div>
 
-      {/* Ticket Types */}
-      <div className="mb-6">
-        <h2 className="mb-3 text-[15px] font-semibold">Ticket Types</h2>
-        <div className="overflow-hidden rounded-lg border border-border">
-          <table className="w-full text-[13px]">
+        <div className="overflow-x-auto">
+          <table className="admin-table">
             <thead>
-              <tr className="border-b border-border bg-surface-secondary text-left">
-                <th className="px-4 py-3 font-semibold text-text-secondary">
-                  Name
-                </th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">
-                  Price
-                </th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">
-                  Total
-                </th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">
-                  Sold
-                </th>
-                <th className="px-4 py-3 font-semibold text-green-700">
-                  Scanned
-                </th>
-                <th className="px-4 py-3 font-semibold text-text-secondary">
-                  Remaining
-                </th>
+              <tr>
+                <th>Tier Name</th>
+                <th>Unit Price</th>
+                <th>Allocated</th>
+                <th>Sold</th>
+                <th>Gate Scanned</th>
+                <th>Remaining</th>
               </tr>
             </thead>
             <tbody>
               {ev.ticketTypes.map((tt) => (
-                <tr
-                  key={tt.id}
-                  className="border-b border-border last:border-0"
-                >
-                  <td className="px-4 py-3 font-medium">{tt.name}</td>
-                  <td className="px-4 py-3 text-text-secondary">
+                <tr key={tt.id}>
+                  <td className="font-bold text-text-primary">{tt.name}</td>
+                  <td className="font-semibold text-text-secondary tabular-nums">
                     NPR {tt.price.toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 text-text-secondary">{tt.total}</td>
-                  <td className="px-4 py-3 text-text-secondary">{tt.sold}</td>
-                  <td className="px-4 py-3 font-semibold text-green-700">
+                  <td className="tabular-nums">{tt.total}</td>
+                  <td className="tabular-nums font-semibold text-text-primary">{tt.sold}</td>
+                  <td className="tabular-nums font-bold text-success">
                     {scanStats[tt.id] ?? 0}
                   </td>
-                  <td className="px-4 py-3 text-text-secondary">
+                  <td className="tabular-nums font-semibold text-text-muted">
                     {tt.total - tt.sold}
                   </td>
                 </tr>
@@ -303,9 +270,11 @@ export default function OrganizerEventDetailPage() {
 
       {/* Description */}
       {ev.description && (
-        <div>
-          <h2 className="mb-2 text-[15px] font-semibold">Description</h2>
-          <p className="whitespace-pre-line text-[14px] leading-relaxed text-text-secondary">
+        <div className="card card--padded bg-surface">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-text-faint mb-3">
+            Description
+          </h3>
+          <p className="text-xs leading-relaxed text-text-secondary whitespace-pre-line">
             {ev.description}
           </p>
         </div>

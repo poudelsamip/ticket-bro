@@ -12,27 +12,34 @@ export default function EventTicketDetailPage() {
     if (eventId) void fetchEventTickets(eventId);
   }, [eventId, fetchEventTickets]);
 
-  if (isLoadingEventTickets) return <Spinner />;
+  if (isLoadingEventTickets) return <Spinner label="Loading ticket passes..." />;
 
   if (error) {
     return (
-      <div className="flex flex-col items-center py-24 text-center">
-        <p className="mb-4 text-[13px] text-red-500">{error}</p>
-        <Link
-          to="/my-tickets"
-          className="text-[13px] font-medium underline underline-offset-4"
-        >
-          ← Back to my tickets
-        </Link>
+      <div className="page-container--form">
+        <div className="empty-state max-w-md w-full">
+          <p className="text-danger text-sm font-semibold mb-3">{error}</p>
+          <Link to="/my-tickets" className="navbar__btn text-xs">
+            ← Back to My Tickets
+          </Link>
+        </div>
       </div>
     );
   }
 
   if (!currentEventTickets) {
     return (
-      <p className="py-24 text-center text-[13px] text-text-muted">
-        No tickets found.
-      </p>
+      <div className="page-container--form">
+        <div className="empty-state max-w-md w-full">
+          <h2 className="empty-state__title">No Passes Found</h2>
+          <p className="empty-state__body">
+            No active tickets were retrieved for this event booking.
+          </p>
+          <Link to="/my-tickets" className="navbar__btn text-xs">
+            ← Back to My Tickets
+          </Link>
+        </div>
+      </div>
     );
   }
 
@@ -46,60 +53,81 @@ export default function EventTicketDetailPage() {
   });
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 lg:px-8">
-      <Link
-        to="/my-tickets"
-        className="mb-8 inline-flex items-center gap-1.5 text-[13px] font-medium transition-colors"
-      >
-        <svg
-          className="h-3.5 w-3.5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={2}
-        >
+    <div className="page-container--narrow">
+      {/* Back button */}
+      <Link to="/my-tickets" className="back-link">
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
         </svg>
-        Back to my tickets
+        Back to my passes
       </Link>
 
-      {/* Event header */}
-      <div className="mb-8">
-        <span className="mb-2 inline-block rounded-full bg-primary-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider">
-          {event.category.name}
-        </span>
-        <h1 className="text-2xl font-bold tracking-tight">{event.title}</h1>
-        <p className="mt-1 text-[13px] text-text-secondary">{eventDate}</p>
-        <p className="text-[13px] text-text-muted">
-          Organized by {event.organizer.orgName}
-        </p>
+      {/* Event Header Banner */}
+      <div className="card card--padded bg-gradient-to-br from-surface to-surface-secondary border-border shadow-sm mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span className="event-card__category bg-accent-light text-accent px-2.5 py-0.5 rounded-full mb-2">
+              {event.category.name}
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-text-primary mt-1">
+              {event.title}
+            </h1>
+            <p className="text-sm font-medium text-text-secondary mt-1">
+              {eventDate}
+            </p>
+            <p className="text-xs text-text-muted mt-0.5">
+              Organized by <span className="font-semibold text-text-primary">{event.organizer.orgName}</span>
+            </p>
+          </div>
+          <div className="text-left sm:text-right shrink-0">
+            <span className="px-3 py-1.5 rounded-full bg-success-bg text-success border border-success-border text-xs font-bold uppercase tracking-wider inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-success" />
+              {tickets.length} Verified Pass{tickets.length !== 1 ? "es" : ""}
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* Ticket cards */}
-      <div className="space-y-4">
+      {/* Individual Ticket Passes list */}
+      <div className="space-y-6">
         {tickets.map((ticket, idx) => (
           <div
             key={ticket.id}
             id={`ticket-card-${ticket.id}`}
-            className="rounded-lg border border-border bg-surface p-5"
+            className="card overflow-hidden border-2 border-border shadow-md bg-surface"
           >
-            <div className="mb-4 flex items-center justify-between">
+            {/* Top Pass Header */}
+            <div className="p-5 sm:p-6 bg-surface flex items-center justify-between border-b border-border">
               <div>
-                <p className="text-[13px] font-semibold">{ticket.ticketType}</p>
-                <p className="text-[11px] text-text-muted">
-                  Ticket #{idx + 1}
-                </p>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-text-faint">
+                  Ticket #{idx + 1} of {tickets.length}
+                </span>
+                <h3 className="text-lg font-bold text-text-primary mt-0.5">
+                  {ticket.ticketType}
+                </h3>
               </div>
-              <span className="rounded-full bg-primary-50 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                VALID
+              <span className="status-pill status-pill--PUBLISHED flex items-center gap-1">
+                <span>✓</span> VALID PASS
               </span>
             </div>
 
-            {/* QR Code display */}
-            <div className="flex flex-col items-center rounded-md border border-border bg-surface-secondary p-6">
-              <QrCodeDisplay value={ticket.qrCode} size={160} />
-              <p className="mt-3 font-mono text-[11px] tracking-widest text-text-muted">
+            {/* Perforation detail */}
+            <div className="relative flex items-center justify-between px-2 bg-surface-secondary">
+              <div className="w-4 h-4 rounded-full bg-surface-secondary -ml-4 border-r border-border" />
+              <div className="flex-1 border-t-2 border-dashed border-border mx-2" />
+              <div className="w-4 h-4 rounded-full bg-surface-secondary -mr-4 border-l border-border" />
+            </div>
+
+            {/* QR Code Presentation Body */}
+            <div className="p-6 sm:p-8 bg-surface-secondary flex flex-col items-center text-center">
+              <div className="p-4 rounded-2xl bg-white border border-border shadow-sm">
+                <QrCodeDisplay value={ticket.qrCode} size={180} />
+              </div>
+              <p className="mt-4 font-mono text-xs font-bold tracking-widest text-text-primary bg-surface px-4 py-1.5 rounded-lg border border-border">
                 {ticket.qrCode}
+              </p>
+              <p className="mt-2 text-xs text-text-muted max-w-xs">
+                Scan this QR code at the event gate for quick entry verification.
               </p>
             </div>
           </div>
@@ -109,9 +137,8 @@ export default function EventTicketDetailPage() {
   );
 }
 
-/* Inline QR code renderer using SVG – no external library needed for display */
+/* Inline QR code renderer using SVG */
 function QrCodeDisplay({ value, size }: { value: string; size: number }) {
-  // We use an img tag pointing to a free QR generation API
   const src = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(value)}&format=svg&qzone=1`;
 
   return (
@@ -120,7 +147,7 @@ function QrCodeDisplay({ value, size }: { value: string; size: number }) {
       alt={`QR code: ${value}`}
       width={size}
       height={size}
-      className="rounded"
+      className="rounded-lg"
     />
   );
 }

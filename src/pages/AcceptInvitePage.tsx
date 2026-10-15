@@ -47,39 +47,24 @@ export default function AcceptInvitePage() {
   };
 
   const inputClass =
-    "w-full rounded-lg border border-border-light bg-white px-4 py-2.5 text-base text-text-primary placeholder:text-text-muted outline-none transition-colors focus:border-text-primary";
-  const labelClass = "mb-1.5 block text-sm font-medium text-text-secondary";
+    "w-full rounded-lg border border-border bg-surface-secondary px-3.5 py-2.5 text-sm text-text-primary placeholder:text-text-faint outline-none transition-all focus:border-accent focus:bg-surface focus:ring-2 focus:ring-accent/10";
+  const labelClass = "block text-xs font-bold uppercase tracking-wider text-text-faint mb-1.5";
 
   if (!token) {
     return (
-      <div className="flex min-h-[calc(100vh-3rem)] items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
-            <svg
-              className="h-7 w-7 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
+      <div className="page-container--form">
+        <div className="card card--padded max-w-md w-full text-center border-border shadow-md">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-danger-bg text-danger flex items-center justify-center font-bold text-xl">
+            !
           </div>
-          <h1 className="text-xl font-bold text-text-primary">
-            Invalid Invite Link
+          <h1 className="text-xl font-bold text-text-primary mb-2">
+            Invalid Invitation Link
           </h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            This invite link is missing or malformed.
+          <p className="text-xs text-text-muted mb-6 leading-relaxed">
+            This invite token is missing, expired, or malformed. Please request a new invite link from your event organizer.
           </p>
-          <Link
-            to="/"
-            className="mt-6 inline-block text-sm font-medium underline underline-offset-4"
-          >
-            Go home
+          <Link to="/" className="navbar__btn text-xs">
+            Return to Homepage
           </Link>
         </div>
       </div>
@@ -88,34 +73,21 @@ export default function AcceptInvitePage() {
 
   if (success) {
     return (
-      <div className="flex min-h-[calc(100vh-3rem)] items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-50">
-            <svg
-              className="h-7 w-7 text-green-600"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5 13l4 4L19 7"
-              />
+      <div className="page-container--form">
+        <div className="card card--padded max-w-md w-full text-center border-2 border-success-border bg-surface shadow-xl">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-success-bg text-success flex items-center justify-center border border-success-border">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
             </svg>
           </div>
-          <h1 className="text-xl font-bold text-text-primary">
-            Account Created!
+          <h1 className="text-xl font-extrabold text-text-primary mb-2">
+            Staff Account Activated!
           </h1>
-          <p className="mt-2 text-sm text-text-secondary">
-            Your staff account has been set up. Redirecting you to login…
+          <p className="text-xs text-text-muted mb-6">
+            Your credentials have been set. Redirecting you to sign in...
           </p>
-          <Link
-            to="/login"
-            className="mt-4 inline-block text-sm font-medium underline underline-offset-4"
-          >
-            Go to Login
+          <Link to="/login" className="navbar__btn text-xs">
+            Sign In Now →
           </Link>
         </div>
       </div>
@@ -123,94 +95,100 @@ export default function AcceptInvitePage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-3rem)] items-center justify-center px-3 py-8 sm:px-6">
-      <div className="w-full max-w-md">
+    <div className="page-container--form">
+      <div className="w-full">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-semibold text-text-primary">
-            Accept Staff Invitation
+        <div className="text-center mb-8">
+          <Link to="/" className="inline-flex items-center gap-2 mb-4">
+            <span className="text-xl font-extrabold tracking-tight text-text-primary">
+              TICKET<span className="text-accent">BRO</span>
+            </span>
+          </Link>
+          <div className="inline-block px-3 py-1 rounded-full bg-accent-light text-accent text-xs font-bold uppercase tracking-wider mb-2">
+            Staff Invitation
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-text-primary">
+            Accept Staff Member Role
           </h1>
-          <p className="mt-1.5 text-sm text-text-secondary">
-            Set up your staff account to get started.
+          <p className="mt-1.5 text-xs text-text-muted">
+            Complete your profile to start validating tickets for your organizer
           </p>
         </div>
 
-        <form
-          onSubmit={(e) => void handleSubmit(e)}
-          className="space-y-4 rounded-xl border border-border bg-white p-6 shadow-sm"
-        >
-          {error && (
-            <div className="rounded-lg bg-red-50 px-4 py-2.5 text-sm text-red-600">
-              {error}
+        {/* Form Card */}
+        <div className="card card--padded shadow-md border-border bg-surface">
+          <form onSubmit={(e) => void handleSubmit(e)} className="space-y-4">
+            {error && (
+              <div className="p-3 rounded-lg bg-danger-bg border border-danger-border text-xs font-semibold text-danger flex items-center gap-2">
+                <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                </svg>
+                <span>{error}</span>
+              </div>
+            )}
+
+            <div>
+              <label htmlFor="staff-fullname" className={labelClass}>
+                Full Name
+              </label>
+              <input
+                id="staff-fullname"
+                type="text"
+                required
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                className={inputClass}
+                placeholder="Jane Staff"
+              />
             </div>
-          )}
 
-          <div>
-            <label htmlFor="staff-fullname" className={labelClass}>
-              Full name
-            </label>
-            <input
-              id="staff-fullname"
-              type="text"
-              required
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className={inputClass}
-              placeholder="Jane Doe"
-            />
-          </div>
+            <div>
+              <label htmlFor="staff-password" className={labelClass}>
+                Set Password
+              </label>
+              <input
+                id="staff-password"
+                type="password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={inputClass}
+                placeholder="At least 8 characters"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="staff-password" className={labelClass}>
-              Password
-            </label>
-            <input
-              id="staff-password"
-              type="password"
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className={inputClass}
-              placeholder="Min 8 characters"
-            />
-          </div>
+            <div>
+              <label htmlFor="staff-confirm-password" className={labelClass}>
+                Confirm Password
+              </label>
+              <input
+                id="staff-confirm-password"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className={inputClass}
+                placeholder="Re-enter your password"
+              />
+            </div>
 
-          <div>
-            <label htmlFor="staff-confirm-password" className={labelClass}>
-              Confirm password
-            </label>
-            <input
-              id="staff-confirm-password"
-              type="password"
-              required
-              minLength={8}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={inputClass}
-              placeholder="Re-enter password"
-            />
-          </div>
-
-          <button
-            type="submit"
-            id="accept-invite-btn"
-            disabled={isLoading}
-            className="w-full cursor-pointer rounded-lg bg-text-primary py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-          >
-            {isLoading ? "Setting up account…" : "Create account & join"}
-          </button>
-        </form>
-
-        <p className="mt-5 text-center text-sm text-text-muted">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-medium text-text-primary underline underline-offset-4"
-          >
-            Sign in
-          </Link>
-        </p>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 py-3 px-4 rounded-xl bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-wider shadow-sm transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              {isLoading ? (
+                <>
+                  <div className="spinner !w-3.5 !h-3.5 !border-white !border-t-transparent" />
+                  <span>Activating Account...</span>
+                </>
+              ) : (
+                "Activate Staff Account"
+              )}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );
