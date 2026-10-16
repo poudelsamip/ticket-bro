@@ -471,6 +471,7 @@
 .navbar__link {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 6px 12px;
   font-size: 13.5px;
   font-weight: 500;
@@ -483,40 +484,117 @@
 .navbar__link:hover { color: var(--color-text-primary); background: var(--color-surface-hover); }
 .navbar__link--active { color: var(--color-accent); font-weight: 600; background: var(--color-accent-light); }
 
+/* User avatar badge — shows initials only, reveals detail card on hover */
 .navbar__user-badge {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px 4px 5px;
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 9999px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
+  cursor: default;
 }
 
 .navbar__avatar {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: 2px solid var(--color-border);
+  transition: border-color 0.15s, transform 0.15s;
+  flex-shrink: 0;
 }
 
-.navbar__role-tag {
+.navbar__user-badge:hover .navbar__avatar {
+  border-color: var(--color-accent);
+  transform: scale(1.08);
+}
+
+/* Floating tooltip card */
+.navbar__user-tooltip {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 200px;
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 200;
+}
+
+/* Arrow */
+.navbar__user-tooltip::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  background: var(--color-surface-secondary);
+  border-top: 1px solid var(--color-border);
+  border-left: 1px solid var(--color-border);
+  transform: rotate(45deg);
+  border-radius: 2px 0 0 0;
+}
+
+.navbar__user-badge:hover .navbar__user-tooltip {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.navbar__user-tooltip-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar__user-tooltip-org {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--color-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar__user-tooltip-email {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.navbar__user-tooltip-role {
+  margin-top: 6px;
+  display: inline-flex;
+  align-self: flex-start;
   font-size: 9.5px;
   font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 5px;
   background: var(--color-primary-100);
   color: var(--color-text-secondary);
-  text-transform: uppercase;
 }
 
 .navbar__btn {
@@ -540,6 +618,7 @@
 .navbar__logout {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   padding: 6px 10px;
   font-size: 13px;
   font-weight: 500;
@@ -577,10 +656,10 @@
   padding: 10px 16px 16px;
   gap: 4px;
 }
-.navbar__mobile-link { display: block; padding: 10px 12px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; border-radius: 7px; transition: background 0.12s, color 0.12s; }
+.navbar__mobile-link { display: flex; align-items: center; gap: 8px; padding: 10px 12px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); text-decoration: none; border-radius: 7px; transition: background 0.12s, color 0.12s; }
 .navbar__mobile-link:hover { background: var(--color-surface-hover); color: var(--color-text-primary); }
 .navbar__mobile-divider { height: 1px; background: var(--color-border); margin: 6px 0; }
-.navbar__mobile-logout { display: block; width: 100%; text-align: left; padding: 10px 12px; font-size: 14px; font-weight: 500; color: var(--color-danger); background: transparent; border: none; cursor: pointer; border-radius: 7px; font-family: var(--font-sans); transition: background 0.12s; }
+.navbar__mobile-logout { display: flex; align-items: center; gap: 8px; width: 100%; text-align: left; padding: 10px 12px; font-size: 14px; font-weight: 500; color: var(--color-danger); background: transparent; border: none; cursor: pointer; border-radius: 7px; font-family: var(--font-sans); transition: background 0.12s; }
 .navbar__mobile-logout:hover { background: var(--color-danger-bg); }
 
 /* ==========================================
