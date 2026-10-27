@@ -1,76 +1,110 @@
 import { Link } from "react-router";
 
 export default function Footer() {
+  const year = new Date().getFullYear();
+
   return (
-    <footer className="border-t border-border bg-surface-secondary/60 text-text-muted mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
-          <div className="md:col-span-2 space-y-3">
+    <footer className="bg-[#0d0f14] border-t border-white/[0.06] text-[#9aa0b4]">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+        {/* Top grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-12">
+          {/* Brand column */}
+          <div className="sm:col-span-2 md:col-span-1 space-y-4">
             <Link to="/" className="inline-flex items-center gap-2">
-              <span className="text-base font-extrabold tracking-tight text-text-primary">
-                TICKET<span className="text-accent">BRO</span>
+              <span className="text-base font-extrabold tracking-tight text-white">
+                TICKET<span className="text-[#f5c518]">BRO</span>
               </span>
-              <span className="navbar__logo-badge">LIVE</span>
+              <span className="text-[10px] font-bold bg-[#f5c518] text-[#0d0f14] px-1.5 py-0.5 rounded tracking-widest uppercase">
+                LIVE
+              </span>
             </Link>
-            <p className="text-xs text-text-muted max-w-sm leading-relaxed">
-              Discover concerts, conferences, and festivals. Instant digital ticketing with verified QR passes for attendees and real-time revenue analytics for organizers.
+            <p className="text-xs leading-relaxed max-w-[220px]">
+              Discover concerts, conferences, and festivals. Instant digital
+              ticketing with verified QR passes and real-time analytics.
             </p>
           </div>
 
+          {/* Discover */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary mb-3">
-              Explore
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Discover
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link to="/events" className="hover:text-text-primary transition-colors">
-                  All Upcoming Events
+                <Link to="/events" className="hover:text-white transition-colors">
+                  Upcoming Events
                 </Link>
               </li>
               <li>
-                <Link to="/my-tickets" className="hover:text-text-primary transition-colors">
-                  My Booked Passes
+                <Link to="/my-tickets" className="hover:text-white transition-colors">
+                  My Bookings
                 </Link>
               </li>
               <li>
-                <Link to="/register" className="hover:text-text-primary transition-colors">
-                  Attendee Account
+                <Link to="/events?search=concerts" className="hover:text-white transition-colors">
+                  All Categories
                 </Link>
               </li>
             </ul>
           </div>
 
+          {/* Explore / For Organizers */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-primary mb-3">
-              For Organizers
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Organizers
             </h4>
-            <ul className="space-y-2 text-xs">
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link to="/register/organizer" className="hover:text-text-primary transition-colors">
-                  Host an Event
+                <Link to="/register/organizer" className="hover:text-white transition-colors">
+                  Organizer Login
                 </Link>
               </li>
               <li>
-                <Link to="/organizer/events" className="hover:text-text-primary transition-colors">
+                <Link to="/organizer/events" className="hover:text-white transition-colors">
                   Organizer Dashboard
                 </Link>
               </li>
               <li>
-                <Link to="/staff/scan" className="hover:text-text-primary transition-colors">
+                <Link to="/staff/scan" className="hover:text-white transition-colors">
                   Staff Gate Scanner
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Support */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-white mb-4">
+              Support
+            </h4>
+            <ul className="space-y-2.5 text-xs">
+              <li>
+                <Link to="/login" className="hover:text-white transition-colors">
+                  Log in / Sign up
+                </Link>
+              </li>
+              <li>
+                <Link to="/my-tickets" className="hover:text-white transition-colors">
+                  My Tickets
+                </Link>
+              </li>
+              <li>
+                <Link to="/register" className="hover:text-white transition-colors">
+                  Privacy
                 </Link>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-border flex flex-col sm:flex-row items-center justify-between text-xs text-text-faint gap-4">
-          <p>© {new Date().getFullYear()} Ticket Bro. Crafted for premium live experiences.</p>
-          <div className="flex items-center gap-4 text-text-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-success" />
-              All Systems Operational
-            </span>
+        {/* Bottom bar */}
+        <div className="pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <p className="text-[#9aa0b4]">
+            © {year} Ticket Bro. All rights reserved.
+          </p>
+          <div className="flex items-center gap-1.5 text-[#9aa0b4]">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            All Systems Operational
           </div>
         </div>
       </div>

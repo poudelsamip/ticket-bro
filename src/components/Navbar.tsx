@@ -102,8 +102,8 @@ export default function Navbar() {
         {/* Brand Logo */}
         <Link to="/" className="navbar__logo" onClick={closeMenu}>
           <div className="flex items-center gap-2">
-            <span className="font-extrabold tracking-tight text-text-primary text-base">
-              TICKET<span className="text-accent">BRO</span>
+            <span className="font-extrabold tracking-tight text-white text-base">
+              TICKET<span className="text-[#f5c518]">BRO</span>
             </span>
             <span className="navbar__logo-badge">LIVE</span>
           </div>

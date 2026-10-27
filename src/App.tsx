@@ -50,7 +50,7 @@ export default function App() {
         <Route
           path="*"
           element={
-            <div className="min-h-screen bg-surface flex flex-col justify-between">
+            <div className="min-h-screen bg-[#0d0f14] flex flex-col justify-between">
               <div className="flex-1 flex flex-col">
                 <Navbar />
                 <main className="flex-1">
